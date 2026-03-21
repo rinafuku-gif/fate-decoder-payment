@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { diagnoses } from "@/drizzle/schema";
-import { sql } from "drizzle-orm";
+import { sql, desc, eq, and } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   if (!(await isAdminAuthenticated())) {
@@ -16,24 +16,29 @@ export async function GET(request: NextRequest) {
   const mode = searchParams.get("mode");
   const offset = (page - 1) * limit;
 
-  const conditions: string[] = [];
-  if (refId) conditions.push(`ref_id = '${refId}'`);
-  if (mode) conditions.push(`mode = '${mode}'`);
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const conditions = [];
+  if (refId) conditions.push(eq(diagnoses.refId, refId));
+  if (mode) conditions.push(eq(diagnoses.mode, mode));
 
-  const rows = await db.all(sql.raw(
-    `SELECT * FROM diagnoses ${where} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`
-  ));
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-  const [{ total }] = await db.all<{ total: number }>(sql.raw(
-    `SELECT count(*) as total FROM diagnoses ${where}`
-  ));
+  const rows = await db.select().from(diagnoses)
+    .where(whereClause)
+    .orderBy(desc(diagnoses.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  const [countResult] = await db.select({
+    total: sql<number>`count(*)`,
+  }).from(diagnoses).where(whereClause);
+
+  const total = countResult?.total || 0;
 
   return NextResponse.json({
     data: rows,
     total,
     page,
     limit,
-    totalPages: Math.ceil((total || 0) / limit),
+    totalPages: Math.ceil(total / limit),
   });
 }
