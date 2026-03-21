@@ -3,9 +3,24 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import StarField from "@/components/StarField";
+import FadeIn from "@/components/FadeIn";
 import { calculateAll, type FortuneResult } from "@/lib/fortune-calc";
 import { generateFortune } from "@/app/actions";
 import { CHARACTER_CONFIG, type Character } from "@/lib/character";
+
+function LoadingText({ stages }: { stages: { text: string; delay: number }[] }) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    const timers = stages.map((stage, i) => {
+      if (i === 0) return null;
+      return setTimeout(() => setIndex(i), stage.delay);
+    });
+    return () => timers.forEach((t) => t && clearTimeout(t));
+  }, [stages]);
+  return <p className="text-sm text-white/80">{stages[index]?.text}</p>;
+}
 
 export default function ShortPage() {
   const router = useRouter();
@@ -125,52 +140,96 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
   // Character select
   if (screen === "select") {
     return (
-      <main className="min-h-screen" style={{ background: "var(--background)" }}>
-        <div className="max-w-lg mx-auto px-5 py-8">
-          <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-block">← 戻る</button>
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--navy)" }}>ショート診断</h1>
-            <p className="text-xs text-gray-400">…どっちに読んでもらう？</p>
-          </div>
+      <main className="min-h-screen relative overflow-hidden" style={{ background: "var(--navy)" }}>
+        <StarField />
+        <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
+          <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="text-sm text-white/40 hover:text-white/70 mb-4 inline-block">← 戻る</button>
+          <FadeIn delay={0.2}>
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold mb-1 text-white">ショート診断</h1>
+              <p className="text-xs text-white/50">…どっちに読んでもらう？</p>
+            </div>
+          </FadeIn>
           <div className="grid grid-cols-2 gap-4">
-            {(["urara", "reki"] as Character[]).map((c) => {
+            {(["urara", "reki"] as Character[]).map((c, i) => {
               const cfg = CHARACTER_CONFIG[c];
               const fullImg = c === "urara" ? "/urara-full.png" : "/reki-full.png";
               return (
-                <button
+                <motion.button
                   key={c}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.2 }}
+                  whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => { setCharacter(c); setScreen("input"); }}
-                  className="rounded-2xl border overflow-hidden text-center hover:shadow-lg hover:scale-[1.02] transition-all"
-                  style={{ background: "var(--warm-white)", borderColor: "var(--gold-light)" }}
+                  className="rounded-2xl border overflow-hidden text-center"
+                  style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(201,169,110,0.3)" }}
                 >
-                  <div className="w-full aspect-square overflow-hidden">
+                  <motion.div
+                    className="w-full aspect-square overflow-hidden"
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
+                  >
                     <Image src={fullImg} alt={cfg.name} width={382} height={382} className="object-cover w-full h-full" />
-                  </div>
+                  </motion.div>
                   <div className="p-3">
-                    <p className="text-sm font-bold" style={{ color: "var(--navy)" }}>{cfg.name}</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{cfg.description}</p>
+                    <p className="text-sm font-bold text-white">{cfg.name}</p>
+                    <p className="text-[11px] text-white/40 mt-0.5">{cfg.description}</p>
                   </div>
-                </button>
+                </motion.button>
               );
             })}
           </div>
-          <p className="text-center text-[11px] text-gray-400 mt-6">無料 — 3分であなたの本質を読み解く</p>
+          <FadeIn delay={0.8}>
+            <p className="text-center text-[11px] text-white/30 mt-6">無料 — 3分であなたの本質を読み解く</p>
+          </FadeIn>
         </div>
       </main>
     );
   }
 
-  // Loading
+  // Loading — 星の図書館演出
   if (screen === "loading" && charConfig) {
     const fullImg = character === "urara" ? "/urara-full.png" : "/reki-full.png";
+    const LoadingMotion = require("framer-motion").motion;
+    const LoadingStarField = require("@/components/StarField").default;
+    const stages = [
+      { text: charConfig.loadingText, delay: 0 },
+      { text: "…星の記録を照合してる", delay: 4000 },
+      { text: "…もう少しだけ待ってて", delay: 8000 },
+    ];
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
-        <div className="text-center">
-          <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 border-2" style={{ borderColor: "var(--gold-light)" }}>
-            <Image src={fullImg} alt={charConfig.name} width={160} height={160} className="object-cover w-full h-full" />
+      <main className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: "var(--navy)" }}>
+        <LoadingStarField />
+        <div className="relative z-10 text-center px-6">
+          <LoadingMotion.div
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-6 border-2" style={{ borderColor: "var(--gold)", boxShadow: "0 0 30px rgba(201,169,110,0.3)" }}>
+              <Image src={fullImg} alt={charConfig.name} width={192} height={192} className="object-cover w-full h-full" />
+            </div>
+          </LoadingMotion.div>
+          <LoadingMotion.div
+            key="loading-text"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <LoadingText stages={stages} />
+          </LoadingMotion.div>
+          <div className="flex justify-center gap-1 mt-6">
+            {[0, 1, 2].map((i) => (
+              <LoadingMotion.div
+                key={i}
+                className="w-2 h-2 rounded-full"
+                style={{ background: "var(--gold)" }}
+                animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
+              />
+            ))}
           </div>
-          <p className="text-sm" style={{ color: "var(--navy)" }}>{charConfig.loadingText}</p>
-          <div className="w-8 h-8 border-2 rounded-full animate-spin mx-auto mt-4" style={{ borderColor: "var(--gold-light)", borderTopColor: "var(--gold)" }} />
         </div>
       </main>
     );

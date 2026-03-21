@@ -3,6 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import StarField from "@/components/StarField";
+import TypeWriter from "@/components/TypeWriter";
+import FadeIn from "@/components/FadeIn";
 
 const MODES = [
   {
@@ -66,122 +70,169 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen" style={{ background: "var(--background)" }}>
-      <div className="max-w-2xl mx-auto px-5 py-8">
+    <main className="min-h-screen relative overflow-hidden" style={{ background: "var(--navy)" }}>
+      <StarField />
+
+      <div className="relative z-10 max-w-2xl mx-auto px-5 py-10">
 
         {/* Hero */}
-        <div className="text-center mb-4">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight" style={{ color: "var(--navy)" }}>
-            うらら
-          </h1>
-          <p className="text-sm mt-1" style={{ color: "var(--gold)" }}>
-            6つの占術で読む、あなたの物語
-          </p>
-        </div>
+        <FadeIn delay={0.2}>
+          <div className="text-center mb-2">
+            <motion.h1
+              className="text-5xl sm:text-6xl font-bold tracking-tight text-white"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              うらら
+            </motion.h1>
+          </div>
+        </FadeIn>
 
-        {/* Characters hero */}
-        <div className="relative rounded-2xl overflow-hidden mb-6" style={{ background: "var(--navy)" }}>
-          <div className="flex">
-            <div className="w-1/2 relative">
-              <Image src="/urara-hero.png" alt="うらら" width={600} height={600} className="w-full h-auto object-cover" priority />
+        <FadeIn delay={0.6}>
+          <p className="text-center text-sm mb-6" style={{ color: "var(--gold)" }}>
+            <TypeWriter text="6つの占術で読む、あなたの物語" speed={60} delay={800} />
+          </p>
+        </FadeIn>
+
+        {/* Characters hero with floating animation */}
+        <FadeIn delay={0.4} y={30}>
+          <div className="relative rounded-2xl overflow-hidden mb-8">
+            <div className="flex">
+              <motion.div
+                className="w-1/2 relative"
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Image src="/urara-hero.png" alt="うらら" width={600} height={600} className="w-full h-auto object-cover" priority />
+              </motion.div>
+              <motion.div
+                className="w-1/2 relative"
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              >
+                <Image src="/reki-hero.png" alt="れき" width={600} height={600} className="w-full h-auto object-cover" priority />
+              </motion.div>
             </div>
-            <div className="w-1/2 relative">
-              <Image src="/reki-hero.png" alt="れき" width={600} height={600} className="w-full h-auto object-cover" priority />
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--navy)] via-[var(--navy)]/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-5 text-center">
+              <p className="text-sm text-white/90 leading-relaxed">
+                <TypeWriter
+                  text="…生年月日を教えてくれたら、星の図書館であなたの本を探してくるよ"
+                  speed={45}
+                  delay={1500}
+                />
+              </p>
             </div>
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--navy)] via-transparent to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
-            <p className="text-sm text-white/80">
-              …生年月日を教えてくれたら、星の図書館であなたの本を探してくるよ
-            </p>
-          </div>
-        </div>
+        </FadeIn>
 
         {/* Notifications */}
-        {cancelled && (
-          <div className="mb-4 p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 text-sm text-center">
-            お支払いがキャンセルされました。
-          </div>
-        )}
-        {error && (
-          <div className="mb-4 p-3 rounded-xl border border-red-200 bg-red-50 text-red-600 text-sm text-center">
-            {error}
-          </div>
-        )}
+        <AnimatePresence>
+          {cancelled && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-4 p-3 rounded-xl border border-amber-500/30 bg-amber-900/30 text-amber-200 text-sm text-center"
+            >
+              お支払いがキャンセルされました。
+            </motion.div>
+          )}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-4 p-3 rounded-xl border border-red-500/30 bg-red-900/30 text-red-200 text-sm text-center"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Divination badges */}
-        <div className="flex flex-wrap justify-center gap-1.5 mb-6">
-          {["西洋占星術", "宿曜", "数秘術", "マヤ暦", "算命学", "四柱推命"].map((name) => (
-            <span key={name} className="px-2.5 py-1 rounded-full text-[11px] border" style={{ background: "var(--cream)", borderColor: "var(--gold-light)", color: "var(--navy-light)" }}>
-              {name}
-            </span>
-          ))}
-        </div>
+        <FadeIn delay={1.0}>
+          <div className="flex flex-wrap justify-center gap-1.5 mb-8">
+            {["西洋占星術", "宿曜", "数秘術", "マヤ暦", "算命学", "四柱推命"].map((name, i) => (
+              <motion.span
+                key={name}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.0 + i * 0.1 }}
+                className="px-2.5 py-1 rounded-full text-[11px] border"
+                style={{ background: "rgba(201,169,110,0.1)", borderColor: "rgba(201,169,110,0.3)", color: "var(--gold-light)" }}
+              >
+                {name}
+              </motion.span>
+            ))}
+          </div>
+        </FadeIn>
 
         {/* Mode cards */}
-        <div className="space-y-3 mb-8">
-          {MODES.map((mode) => (
-            <div
+        <div className="space-y-3 mb-10">
+          {MODES.map((mode, i) => (
+            <motion.div
               key={mode.id}
-              className="rounded-2xl border p-4 transition-all duration-150 hover:shadow-lg hover:scale-[1.01]"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1.2 + i * 0.15, duration: 0.5 }}
+              whileHover={{ scale: 1.02, transition: { duration: 0.15 } }}
+              className="rounded-2xl border p-5 cursor-pointer backdrop-blur-sm"
               style={{
-                background: mode.paid ? "var(--warm-white)" : "var(--cream)",
-                borderColor: mode.paid ? "var(--gold-light)" : "var(--gold)",
+                background: "rgba(255,255,255,0.05)",
+                borderColor: mode.paid ? "rgba(201,169,110,0.2)" : "rgba(201,169,110,0.5)",
+              }}
+              onClick={() => {
+                if (mode.id === "short") router.push(`/short${ref ? `?ref=${ref}` : ""}`);
+                else handleCheckout(mode.id as "full" | "compatibility");
               }}
             >
               <div className="flex items-start justify-between mb-1">
                 <div>
-                  <h2 className="text-base font-bold" style={{ color: "var(--navy)" }}>{mode.label}</h2>
-                  <p className="text-xs text-gray-400">{mode.subtitle}</p>
+                  <h2 className="text-base font-bold text-white">{mode.label}</h2>
+                  <p className="text-xs text-white/40">{mode.subtitle}</p>
                 </div>
-                <span className="text-sm font-bold" style={{ color: mode.paid ? "var(--gold)" : "#e07c7c" }}>
+                <span className="text-sm font-bold" style={{ color: mode.paid ? "var(--gold)" : "#e8a0a0" }}>
                   {mode.price}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mb-3 leading-relaxed">{mode.description}</p>
-              {mode.id === "short" ? (
-                <button
-                  onClick={() => router.push(`/short${ref ? `?ref=${ref}` : ""}`)}
-                  className="w-full py-2.5 rounded-full font-medium text-sm text-white transition-colors"
-                  style={{ background: "#c07878" }}
-                >
-                  無料で診断する
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleCheckout(mode.id as "full" | "compatibility")}
-                  disabled={loading !== null}
-                  className="w-full py-2.5 rounded-full font-medium text-sm text-white transition-colors disabled:opacity-50"
-                  style={{ background: "var(--navy)" }}
-                >
-                  {loading === mode.id ? "決済画面へ移動中…" : `¥200で鑑定する`}
-                </button>
-              )}
-            </div>
+              <p className="text-xs text-white/60 mb-3 leading-relaxed">{mode.description}</p>
+              <div
+                className="w-full py-2.5 rounded-full font-medium text-sm text-center text-white transition-all"
+                style={{ background: mode.paid ? "rgba(201,169,110,0.2)" : "rgba(201,169,110,0.4)" }}
+              >
+                {loading === mode.id ? "決済画面へ移動中…" : mode.paid ? "¥200で鑑定する" : "無料で診断する"}
+              </div>
+            </motion.div>
           ))}
         </div>
 
         {/* How it works */}
-        <div className="grid grid-cols-3 gap-2 text-center mb-8">
-          {[
-            { step: "1", title: "メニューを選ぶ" },
-            { step: "2", title: "生年月日を入力" },
-            { step: "3", title: "結果を受け取る" },
-          ].map((item) => (
-            <div key={item.step}>
-              <div className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold mb-1" style={{ background: "var(--cream)", color: "var(--gold)" }}>
-                {item.step}
+        <FadeIn delay={1.8}>
+          <div className="grid grid-cols-3 gap-3 text-center mb-10">
+            {[
+              { step: "1", title: "メニューを選ぶ" },
+              { step: "2", title: "生年月日を入力" },
+              { step: "3", title: "結果を受け取る" },
+            ].map((item) => (
+              <div key={item.step}>
+                <div className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold mb-1 border" style={{ borderColor: "rgba(201,169,110,0.3)", color: "var(--gold)" }}>
+                  {item.step}
+                </div>
+                <p className="text-[11px] text-white/50">{item.title}</p>
               </div>
-              <p className="text-[11px] text-gray-500">{item.title}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </FadeIn>
 
         {/* Footer */}
-        <footer className="text-center text-[11px] text-gray-400 space-y-1">
-          <p>Stripe安全決済 · スマホ対応</p>
-          <p>&copy; 2026 うらら / SATOYAMA AI BASE</p>
-        </footer>
+        <FadeIn delay={2.0}>
+          <footer className="text-center text-[11px] text-white/30 space-y-1">
+            <p>Stripe安全決済 · スマホ対応</p>
+            <p>&copy; 2026 うらら / SATOYAMA AI BASE</p>
+          </footer>
+        </FadeIn>
       </div>
     </main>
   );
