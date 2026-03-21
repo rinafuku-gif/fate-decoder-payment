@@ -83,10 +83,10 @@ export default function HomePage() {
         <div className="relative rounded-2xl overflow-hidden mb-6" style={{ background: "var(--navy)" }}>
           <div className="flex">
             <div className="w-1/2 relative">
-              <Image src="/urara-hero.png" alt="うらら" width={600} height={327} className="w-full h-auto object-cover" priority />
+              <Image src="/urara-hero.png" alt="うらら" width={600} height={600} className="w-full h-auto object-cover" priority />
             </div>
             <div className="w-1/2 relative">
-              <Image src="/reki-hero.png" alt="れき" width={600} height={327} className="w-full h-auto object-cover" priority />
+              <Image src="/reki-hero.png" alt="れき" width={600} height={600} className="w-full h-auto object-cover" priority />
             </div>
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--navy)] via-transparent to-transparent" />

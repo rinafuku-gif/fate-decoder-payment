@@ -13,6 +13,7 @@ export default function ShortPage() {
   const [character, setCharacter] = useState<Character | null>(null);
   const [screen, setScreen] = useState<"select" | "input" | "loading" | "result">("select");
   const [form, setForm] = useState({ name: "", year: "", month: "1", day: "1" });
+  const [toast, setToast] = useState<string | null>(null);
   const [result, setResult] = useState<{
     name: string; data: FortuneResult; oneWord: string;
     personality: string; relationships: string; talent: string;
@@ -117,7 +118,7 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
     if (navigator.share) {
       try { await navigator.share({ title: "うらら", text, url }); } catch {}
     } else {
-      try { await navigator.clipboard.writeText(`${text}\n${url}`); alert("コピーしました！"); } catch {}
+      try { await navigator.clipboard.writeText(`${text}\n${url}`); setToast("コピーしました"); setTimeout(() => setToast(null), 2000); } catch {}
     }
   };
 
@@ -147,6 +148,7 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
                   </div>
                   <div className="p-3">
                     <p className="text-sm font-bold" style={{ color: "var(--navy)" }}>{cfg.name}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">{cfg.description}</p>
                   </div>
                 </button>
               );
@@ -180,16 +182,16 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
       <main className="min-h-screen bg-[var(--background)]">
         <div className="max-w-lg mx-auto px-5 py-8">
           <header className="text-center mb-6">
-            <div className="w-14 h-14 rounded-full overflow-hidden mx-auto mb-2 border-2 border-indigo-100">
-              <Image src={charConfig.image} alt={charConfig.name} width={56} height={56} className="object-cover object-top w-full h-full" />
+            <div className="w-14 h-14 rounded-full overflow-hidden mx-auto mb-2 border-2" style={{ borderColor: "var(--gold-light)" }}>
+              <Image src={charConfig.image} alt={charConfig.name} width={112} height={112} className="object-cover w-full h-full" />
             </div>
             <p className="text-xs text-gray-400 mb-1">{charConfig.name}が読み解いた</p>
-            <h1 className="text-lg font-bold text-gray-800">{result.name} の診断結果</h1>
+            <h1 className="text-lg font-bold" style={{ color: "var(--navy)" }}>{result.name} の診断結果</h1>
           </header>
 
-          <div className="text-center mb-6 p-4 rounded-2xl bg-gradient-to-r from-indigo-50 to-rose-50 border border-indigo-100">
+          <div className="text-center mb-6 p-4 rounded-2xl border" style={{ background: "var(--cream)", borderColor: "var(--gold-light)" }}>
             <p className="text-[11px] text-gray-400 mb-1">あなたを一言で</p>
-            <p className="text-base font-bold text-indigo-700">{result.oneWord}</p>
+            <p className="text-base font-bold" style={{ color: "var(--navy)" }}>{result.oneWord}</p>
           </div>
 
           {/* Data grid */}
@@ -202,9 +204,9 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
               { label: "中心星", value: result.data.bazi.weapon },
               { label: "宿曜", value: result.data.sukuyo },
             ].map((d, i) => (
-              <div key={i} className="text-center p-2 rounded-xl bg-white border border-gray-100">
-                <p className="text-[10px] text-gray-400">{d.label}</p>
-                <p className="text-xs font-medium text-gray-700">{d.value}</p>
+              <div key={i} className="text-center p-2 rounded-xl border" style={{ background: "var(--warm-white)", borderColor: "var(--gold-light)" }}>
+                <p className="text-[10px]" style={{ color: "var(--gold)" }}>{d.label}</p>
+                <p className="text-xs font-medium" style={{ color: "var(--navy)" }}>{d.value}</p>
               </div>
             ))}
           </div>
@@ -212,30 +214,30 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
           {/* Readings */}
           <div className="space-y-4 mb-6">
             {[
-              { title: "性格の核心", text: result.personality, color: "border-l-indigo-300" },
-              { title: "人間関係", text: result.relationships, color: "border-l-rose-300" },
-              { title: "才能・仕事", text: result.talent, color: "border-l-amber-300" },
+              { title: "性格の核心", text: result.personality },
+              { title: "人間関係", text: result.relationships },
+              { title: "才能・仕事", text: result.talent },
             ].map((section, i) => (
-              <div key={i} className={`border-l-3 pl-4 py-2 ${section.color}`}>
-                <h3 className="text-sm font-bold text-gray-700 mb-1">{section.title}</h3>
+              <div key={i} className="border-l-3 pl-4 py-2" style={{ borderLeftColor: "var(--gold)" }}>
+                <h3 className="text-sm font-bold mb-1" style={{ color: "var(--navy)" }}>{section.title}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">{section.text}</p>
               </div>
             ))}
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-8">
-            <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-100 text-center">
-              <p className="text-[10px] text-indigo-400 mb-1">今日のアクション</p>
+            <div className="p-3 rounded-xl border text-center" style={{ background: "var(--cream)", borderColor: "var(--gold-light)" }}>
+              <p className="text-[10px] mb-1" style={{ color: "var(--gold)" }}>今日のアクション</p>
               <p className="text-xs text-gray-700">{result.action}</p>
             </div>
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 text-center">
-              <p className="text-[10px] text-rose-400 mb-1">ラッキーアイテム</p>
+            <div className="p-3 rounded-xl border text-center" style={{ background: "var(--warm-white)", borderColor: "var(--gold-light)" }}>
+              <p className="text-[10px] mb-1" style={{ color: "var(--gold)" }}>ラッキーアイテム</p>
               <p className="text-xs text-gray-700">{result.luckyItem}</p>
             </div>
           </div>
 
           {/* Upsell */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-indigo-50 to-rose-50 border border-indigo-100 text-center mb-6">
+          <div className="p-5 rounded-2xl border text-center mb-6" style={{ background: "var(--cream)", borderColor: "var(--gold-light)" }}>
             <p className="text-sm text-gray-600 mb-1">
               …もっと詳しく知りたいなら
             </p>
@@ -244,18 +246,25 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
             </p>
             <button
               onClick={() => router.push(ref ? `/?ref=${ref}` : "/")}
-              className="px-6 py-2.5 rounded-full bg-indigo-500 text-white text-sm font-medium hover:bg-indigo-600 transition-colors"
+              className="px-6 py-2.5 rounded-full text-white text-sm font-medium transition-colors"
+              style={{ background: "var(--navy)" }}
             >
               ¥200で詳しく鑑定する
             </button>
           </div>
 
           <div className="flex gap-3 no-print">
-            <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="flex-1 py-2.5 rounded-full border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">もう一度</button>
-            <button onClick={handleShare} className="flex-1 py-2.5 rounded-full border border-indigo-200 text-sm text-indigo-500 hover:bg-indigo-50">結果を共有する</button>
+            <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="flex-1 py-2.5 rounded-full border text-sm text-gray-600 hover:bg-gray-50" style={{ borderColor: "var(--gold-light)" }}>もう一度</button>
+            <button onClick={handleShare} className="flex-1 py-2.5 rounded-full border text-sm transition-colors hover:opacity-80" style={{ borderColor: "var(--gold)", color: "var(--navy)" }}>結果を共有する</button>
           </div>
 
-          <footer className="text-center text-[11px] text-gray-300 mt-8">うらら — ショート診断</footer>
+          {toast && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-sm text-white shadow-lg transition-opacity z-50" style={{ background: "var(--navy)" }}>
+              {toast}
+            </div>
+          )}
+
+          <footer className="text-center text-[11px] text-gray-400 mt-8">うらら — ショート診断</footer>
         </div>
       </main>
     );
@@ -280,16 +289,16 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">お名前 <span className="text-rose-400 text-xs">必須</span></label>
-            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="ニックネームでOK" required className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200" />
+            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="ニックネームでOK" required className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold-light)]" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">生年月日 <span className="text-rose-400 text-xs">必須</span></label>
             <div className="grid grid-cols-3 gap-2">
-              <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="1995" required className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:border-indigo-300" />
-              <select value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:border-indigo-300">
+              <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="1995" required className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:border-[var(--gold)]" />
+              <select value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:border-[var(--gold)]">
                 {Array.from({ length: 12 }, (_, i) => (<option key={i + 1} value={i + 1}>{i + 1}月</option>))}
               </select>
-              <select value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })} className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:border-indigo-300">
+              <select value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })} className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:border-[var(--gold)]">
                 {Array.from({ length: 31 }, (_, i) => (<option key={i + 1} value={i + 1}>{i + 1}日</option>))}
               </select>
             </div>

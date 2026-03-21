@@ -3,7 +3,8 @@ export type Character = "urara" | "reki";
 export const CHARACTER_CONFIG = {
   urara: {
     name: "うらら",
-    image: "/urara.png",
+    description: "気だるげだけど、核心をさらっと言う",
+    image: "/urara-full.png",
     loadingText: "…ちょっと待ってて。図書館で探してくる",
     loadingCompatText: "…ふたりの本、見比べてくるね",
     promptStyle: `
@@ -18,7 +19,8 @@ export const CHARACTER_CONFIG = {
   },
   reki: {
     name: "れき",
-    image: "/reki.png",
+    description: "飄々としてるけど、軽く刺してくる",
+    image: "/reki-full.png",
     loadingText: "…見てくるから少し待って",
     loadingCompatText: "…ふたりの記録、照合してくる",
     promptStyle: `
