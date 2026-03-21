@@ -5,9 +5,7 @@ function getStripe(): Stripe {
   if (!key) {
     throw new Error("STRIPE_SECRET_KEY is not set");
   }
-  return new Stripe(key, {
-    apiVersion: "2025-12-18.acacia" as Stripe.LatestApiVersion,
-  });
+  return new Stripe(key);
 }
 
 export function getStripeInstance(): Stripe {
