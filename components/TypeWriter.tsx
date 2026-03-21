@@ -8,32 +8,39 @@ interface TypeWriterProps {
   delay?: number;
   className?: string;
   style?: React.CSSProperties;
+  onComplete?: () => void;
 }
 
-export default function TypeWriter({ text, speed = 50, delay = 300, className, style }: TypeWriterProps) {
+export default function TypeWriter({ text, speed = 50, delay = 300, className, style, onComplete }: TypeWriterProps) {
   const [displayed, setDisplayed] = useState("");
   const [started, setStarted] = useState(false);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
+    setDisplayed("");
+    setDone(false);
+    setStarted(false);
     const timer = setTimeout(() => setStarted(true), delay);
     return () => clearTimeout(timer);
-  }, [delay]);
+  }, [text, delay]);
 
   useEffect(() => {
-    if (!started) return;
-    if (displayed.length >= text.length) return;
-
+    if (!started || done) return;
+    if (displayed.length >= text.length) {
+      setDone(true);
+      onComplete?.();
+      return;
+    }
     const timer = setTimeout(() => {
       setDisplayed(text.slice(0, displayed.length + 1));
     }, speed);
-
     return () => clearTimeout(timer);
-  }, [started, displayed, text, speed]);
+  }, [started, displayed, text, speed, done, onComplete]);
 
   return (
     <span className={className} style={style}>
       {displayed}
-      {displayed.length < text.length && <span className="animate-pulse">|</span>}
+      {!done && started && <span className="animate-pulse opacity-50">|</span>}
     </span>
   );
 }
