@@ -8,12 +8,12 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Fate Decoder — 生年月日でわかる、あなたの今",
+  title: "うらら — 6つの占術で読む、あなたの物語",
   description:
-    "6つの占術（西洋占星術・四柱推命・数秘術・マヤ暦・算命学・宿曜）をAIが読み解くパーソナル鑑定。ショート診断は無料。",
+    "うららとれきが6つの占術であなたの本質を読み解きます。ショート診断は無料。",
   openGraph: {
-    title: "Fate Decoder — 生年月日でわかる、あなたの今",
-    description: "6つの占術をAIが読み解くパーソナル鑑定。ショート診断は無料。",
+    title: "うらら — 6つの占術で読む、あなたの物語",
+    description: "うららとれきが6つの占術であなたの本質を読み解きます。ショート診断は無料。",
     type: "website",
   },
 };
