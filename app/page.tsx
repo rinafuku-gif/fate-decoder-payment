@@ -122,14 +122,19 @@ export default function HomePage() {
                 <div className="grid grid-cols-2 gap-4">
                   {(["urara", "reki"] as Character[]).map((c, i) => {
                     const cfg = CHARACTER_CONFIG[c];
-                    const img = c === "urara" ? "/urara-full.png" : "/reki-full.png";
                     return (
                       <motion.button key={c} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.15 }} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                         onClick={() => { setCharacter(c); go("ask_name"); }}
                         className="rounded-2xl border overflow-hidden" style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(201,169,110,0.3)" }}>
-                        <motion.div className="aspect-square overflow-hidden" animate={{ y: [0, -4, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}>
-                          <Image src={img} alt={cfg.name} width={382} height={382} className="object-cover w-full h-full" />
-                        </motion.div>
+                        <div className="aspect-[4/3] overflow-hidden">
+                          {cfg.videoIdle ? (
+                            <video src={cfg.videoIdle} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                          ) : (
+                            <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}>
+                              <Image src={cfg.image} alt={cfg.name} width={382} height={382} className="object-cover w-full h-full" />
+                            </motion.div>
+                          )}
+                        </div>
                         <div className="p-3 text-center">
                           <p className="text-sm font-bold text-white">{cfg.name}</p>
                           <p className="text-[11px] text-white/40">{cfg.description}</p>
@@ -144,7 +149,7 @@ export default function HomePage() {
             {/* ASK NAME */}
             {step === "ask_name" && charConfig && (
               <motion.div key="name" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} text="…名前、教えてくれる？" onComplete={onBubbleDone} />
+                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text="…名前、教えてくれる？" onComplete={onBubbleDone} />
                 {inputReady && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 ml-13">
                     <input type="text" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) go("ask_birthday"); }} placeholder="ニックネームでOK" autoFocus
@@ -160,7 +165,7 @@ export default function HomePage() {
             {/* ASK BIRTHDAY — 1画面にセレクト3つ */}
             {step === "ask_birthday" && charConfig && (
               <motion.div key="bday" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} text={`…ありがとう、${name}。生年月日を教えてくれる？`} onComplete={onBubbleDone} />
+                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text={`…ありがとう、${name}。生年月日を教えてくれる？`} onComplete={onBubbleDone} />
                 {inputReady && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 ml-13">
                     <div className="grid grid-cols-3 gap-2 mb-3">
@@ -212,7 +217,7 @@ export default function HomePage() {
             {/* RESULT */}
             {step === "result" && result && charConfig && (
               <motion.div key="result" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-8">
-                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} text={`…${result.name}の本、見つけてきたよ。`} speed={35} />
+                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text={`…${result.name}の本、見つけてきたよ。`} speed={35} />
 
                 <FadeIn delay={1.5}>
                   <div className="text-center mb-6 p-4 rounded-2xl border" style={{ background: "rgba(201,169,110,0.08)", borderColor: "rgba(201,169,110,0.2)" }}>
@@ -268,7 +273,7 @@ export default function HomePage() {
                 </FadeIn>
 
                 <FadeIn delay={3.5}>
-                  <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} text="…もっと詳しく知りたい？6000文字のレポートがある。書いてこようか？ ¥200だけど。" speed={30} />
+                  <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text="…もっと詳しく知りたい？6000文字のレポートがある。書いてこようか？ ¥200だけど。" speed={30} />
                   <div className="flex gap-2 ml-13 mt-2">
                     <button onClick={() => {
                       fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "full", ref: ref || "direct" }) })
