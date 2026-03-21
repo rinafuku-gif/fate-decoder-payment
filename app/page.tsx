@@ -4,9 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import StarField from "@/components/StarField";
+import TouchParticles from "@/components/TouchParticles";
 import ChatBubble from "@/components/ChatBubble";
 import ProgressBar from "@/components/ProgressBar";
 import FadeIn from "@/components/FadeIn";
+import TiltCard from "@/components/TiltCard";
+import SoundToggle, { playTap, playTransition, playReveal } from "@/components/Sound";
 import { CHARACTER_CONFIG, type Character } from "@/lib/character";
 import { calculateAll } from "@/lib/fortune-calc";
 import { generateFortune } from "@/app/actions";
@@ -41,7 +44,7 @@ export default function HomePage() {
 
   const charConfig = character ? CHARACTER_CONFIG[character] : null;
   const onBubbleDone = useCallback(() => setInputReady(true), []);
-  const go = useCallback((s: Step) => { setInputReady(false); setStep(s); }, []);
+  const go = useCallback((s: Step) => { setInputReady(false); setStep(s); playTransition(); }, []);
 
   // Run diagnosis
   const runDiagnosis = useCallback(async () => {
@@ -71,6 +74,7 @@ export default function HomePage() {
 
       setResult({ ...parsed, data, name });
       setStep("result");
+      playReveal();
     } catch { go("ask_name"); }
   }, [character, name, year, month, day, ref, go]);
 
@@ -86,7 +90,9 @@ export default function HomePage() {
   return (
     <main className="min-h-screen relative overflow-hidden" style={{ background: "var(--navy)" }}>
       <StarField />
-      <div className="relative z-10 max-w-lg mx-auto px-5 min-h-screen flex flex-col">
+      <TouchParticles />
+      <SoundToggle />
+      <div className="relative z-20 max-w-lg mx-auto px-5 min-h-screen flex flex-col">
 
         {!["intro", "loading", "result"].includes(step) && (
           <div className="pt-4 pb-2"><ProgressBar current={stepNum(step)} total={STEP_TOTAL} /></div>
@@ -123,23 +129,27 @@ export default function HomePage() {
                   {(["urara", "reki"] as Character[]).map((c, i) => {
                     const cfg = CHARACTER_CONFIG[c];
                     return (
-                      <motion.button key={c} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.15 }} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                        onClick={() => { setCharacter(c); go("ask_name"); }}
-                        className="rounded-2xl border overflow-hidden" style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(201,169,110,0.3)" }}>
-                        <div className="aspect-[4/3] overflow-hidden">
-                          {cfg.videoIdle ? (
-                            <video src={cfg.videoIdle} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                          ) : (
-                            <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}>
-                              <Image src={cfg.image} alt={cfg.name} width={382} height={382} className="object-cover w-full h-full" />
-                            </motion.div>
-                          )}
-                        </div>
-                        <div className="p-3 text-center">
-                          <p className="text-sm font-bold text-white">{cfg.name}</p>
-                          <p className="text-[11px] text-white/40">{cfg.description}</p>
-                        </div>
-                      </motion.button>
+                      <motion.div key={c} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.15 }}>
+                        <TiltCard
+                          onClick={() => { playTap(); setCharacter(c); go("ask_name"); }}
+                          className="rounded-2xl border overflow-hidden cursor-pointer relative"
+                          style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(201,169,110,0.3)" }}
+                        >
+                          <div className="aspect-[4/3] overflow-hidden">
+                            {cfg.videoIdle ? (
+                              <video src={cfg.videoIdle} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                            ) : (
+                              <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}>
+                                <Image src={cfg.image} alt={cfg.name} width={382} height={382} className="object-cover w-full h-full" />
+                              </motion.div>
+                            )}
+                          </div>
+                          <div className="p-3 text-center">
+                            <p className="text-sm font-bold text-white">{cfg.name}</p>
+                            <p className="text-[11px] text-white/40">{cfg.description}</p>
+                          </div>
+                        </TiltCard>
+                      </motion.div>
                     );
                   })}
                 </div>
@@ -154,7 +164,7 @@ export default function HomePage() {
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 ml-13">
                     <input type="text" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) go("ask_birthday"); }} placeholder="ニックネームでOK" autoFocus
                       className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/30 outline-none" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(201,169,110,0.3)" }} />
-                    <button onClick={() => { if (name.trim()) go("ask_birthday"); }} disabled={!name.trim()} className="mt-2 w-full py-2.5 rounded-full text-sm font-medium text-white disabled:opacity-30" style={{ background: "var(--gold)" }}>
+                    <button onClick={() => { playTap(); if (name.trim()) go("ask_birthday"); }} disabled={!name.trim()} className="mt-2 w-full py-2.5 rounded-full text-sm font-medium text-white disabled:opacity-30" style={{ background: "var(--gold)" }}>
                       次へ
                     </button>
                   </motion.div>
@@ -185,7 +195,7 @@ export default function HomePage() {
                         ))}
                       </select>
                     </div>
-                    <button onClick={() => setStep("loading")} className="w-full py-2.5 rounded-full text-sm font-medium text-white" style={{ background: "var(--gold)" }}>
+                    <button onClick={() => { playTap(); setStep("loading"); }} className="w-full py-2.5 rounded-full text-sm font-medium text-white" style={{ background: "var(--gold)" }}>
                       …読んでくる
                     </button>
                   </motion.div>
@@ -220,10 +230,22 @@ export default function HomePage() {
                 <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text={`…${result.name}の本、見つけてきたよ。`} speed={35} />
 
                 <FadeIn delay={1.5}>
-                  <div className="text-center mb-6 p-4 rounded-2xl border" style={{ background: "rgba(201,169,110,0.08)", borderColor: "rgba(201,169,110,0.2)" }}>
+                  <TiltCard
+                    className="text-center mb-6 p-5 rounded-2xl border"
+                    style={{ background: "rgba(201,169,110,0.08)", borderColor: "rgba(201,169,110,0.25)" }}
+                    intensity={8}
+                  >
                     <p className="text-[11px] text-white/40 mb-1">あなたを一言で</p>
-                    <p className="text-lg font-bold" style={{ color: "var(--gold)" }}>{result.oneWord}</p>
-                  </div>
+                    <motion.p
+                      className="text-xl font-bold"
+                      style={{ color: "var(--gold)" }}
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 2.0, duration: 0.5, type: "spring" }}
+                    >
+                      {result.oneWord}
+                    </motion.p>
+                  </TiltCard>
                 </FadeIn>
 
                 <FadeIn delay={2.0}>
