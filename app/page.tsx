@@ -288,17 +288,18 @@ export default function HomePage() {
             {/* ━━━ LOADING ━━━ */}
             {step === "loading" && charConfig && (
               <motion.div key="load" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="text-center">
-                <motion.div
-                  animate={{ y: [0, -12, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <div
-                    className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-8"
-                    style={{ border: "2px solid rgba(201,169,110,0.5)", boxShadow: "0 0 60px rgba(201,169,110,0.2), inset 0 0 20px rgba(201,169,110,0.1)" }}
-                  >
-                    <Image src={charConfig.image} alt={charConfig.name} width={224} height={224} className="object-cover w-full h-full" />
+                {charConfig.videoSearch ? (
+                  /* Full-width search video */
+                  <div className="rounded-2xl overflow-hidden mb-8 mx-auto max-w-sm" style={{ border: "1px solid rgba(201,169,110,0.2)", boxShadow: "0 0 60px rgba(201,169,110,0.1)" }}>
+                    <video src={charConfig.videoSearch} autoPlay loop muted playsInline className="w-full h-auto" />
                   </div>
-                </motion.div>
+                ) : (
+                  <motion.div animate={{ y: [0, -12, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
+                    <div className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-8" style={{ border: "2px solid rgba(201,169,110,0.5)", boxShadow: "0 0 60px rgba(201,169,110,0.2)" }}>
+                      <Image src={charConfig.image} alt={charConfig.name} width={224} height={224} className="object-cover w-full h-full" />
+                    </div>
+                  </motion.div>
+                )}
                 <AnimatePresence mode="wait">
                   <motion.p
                     key={loadingStage}

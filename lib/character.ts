@@ -7,6 +7,7 @@ export const CHARACTER_CONFIG = {
     image: "/urara-full.png",
     videoIdle: "/urara-idle.mp4",
     videoTalk: "/urara-talk.mp4",
+    videoSearch: "/urara-search.mp4",
     loadingText: "…ちょっと待ってて。図書館で探してくる",
     loadingCompatText: "…ふたりの本、見比べてくるね",
     promptStyle: `
@@ -25,6 +26,7 @@ export const CHARACTER_CONFIG = {
     image: "/reki-full.png",
     videoIdle: null,
     videoTalk: null,
+    videoSearch: null,
     loadingText: "…見てくるから少し待って",
     loadingCompatText: "…ふたりの記録、照合してくる",
     promptStyle: `
