@@ -124,31 +124,35 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
   // Character select
   if (screen === "select") {
     return (
-      <main className="min-h-screen bg-[var(--background)]">
+      <main className="min-h-screen" style={{ background: "var(--background)" }}>
         <div className="max-w-lg mx-auto px-5 py-8">
           <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-block">← 戻る</button>
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-indigo-900 mb-1">ショート診断</h1>
+            <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--navy)" }}>ショート診断</h1>
             <p className="text-xs text-gray-400">…どっちに読んでもらう？</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             {(["urara", "reki"] as Character[]).map((c) => {
               const cfg = CHARACTER_CONFIG[c];
+              const fullImg = c === "urara" ? "/urara-full.png" : "/reki-full.png";
               return (
                 <button
                   key={c}
                   onClick={() => { setCharacter(c); setScreen("input"); }}
-                  className="rounded-2xl border border-indigo-100 bg-white p-4 text-center hover:shadow-lg hover:scale-[1.02] transition-all"
+                  className="rounded-2xl border overflow-hidden text-center hover:shadow-lg hover:scale-[1.02] transition-all"
+                  style={{ background: "var(--warm-white)", borderColor: "var(--gold-light)" }}
                 >
-                  <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-3 border-2 border-indigo-50">
-                    <Image src={cfg.image} alt={cfg.name} width={96} height={96} className="object-cover object-top w-full h-full" />
+                  <div className="w-full aspect-square overflow-hidden">
+                    <Image src={fullImg} alt={cfg.name} width={382} height={382} className="object-cover w-full h-full" />
                   </div>
-                  <p className="text-sm font-bold text-gray-800">{cfg.name}</p>
+                  <div className="p-3">
+                    <p className="text-sm font-bold" style={{ color: "var(--navy)" }}>{cfg.name}</p>
+                  </div>
                 </button>
               );
             })}
           </div>
-          <p className="text-center text-[11px] text-gray-300 mt-6">無料 — 3分であなたの本質を読み解く</p>
+          <p className="text-center text-[11px] text-gray-400 mt-6">無料 — 3分であなたの本質を読み解く</p>
         </div>
       </main>
     );
@@ -156,14 +160,15 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
 
   // Loading
   if (screen === "loading" && charConfig) {
+    const fullImg = character === "urara" ? "/urara-full.png" : "/reki-full.png";
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
         <div className="text-center">
-          <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-4 border-2 border-indigo-100">
-            <Image src={charConfig.image} alt={charConfig.name} width={64} height={64} className="object-cover object-top w-full h-full" />
+          <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 border-2" style={{ borderColor: "var(--gold-light)" }}>
+            <Image src={fullImg} alt={charConfig.name} width={160} height={160} className="object-cover w-full h-full" />
           </div>
-          <p className="text-sm text-gray-600">{charConfig.loadingText}</p>
-          <div className="w-8 h-8 border-2 border-indigo-100 border-t-indigo-400 rounded-full animate-spin mx-auto mt-4" />
+          <p className="text-sm" style={{ color: "var(--navy)" }}>{charConfig.loadingText}</p>
+          <div className="w-8 h-8 border-2 rounded-full animate-spin mx-auto mt-4" style={{ borderColor: "var(--gold-light)", borderTopColor: "var(--gold)" }} />
         </div>
       </main>
     );
@@ -260,7 +265,7 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
   return (
     <main className="min-h-screen bg-[var(--background)]">
       <div className="max-w-lg mx-auto px-5 py-8">
-        <button onClick={() => setScreen("select")} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-block">← キャラ選択へ</button>
+        <button onClick={() => setScreen("select")} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-block" style={{ color: "var(--navy-light)" }}>← キャラ選択へ</button>
 
         <div className="text-center mb-6">
           {charConfig && (
@@ -268,7 +273,7 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
               <Image src={charConfig.image} alt={charConfig.name} width={56} height={56} className="object-cover object-top w-full h-full" />
             </div>
           )}
-          <h1 className="text-xl font-bold text-indigo-900">ショート診断</h1>
+          <h1 className="text-xl font-bold text-[var(--navy)]">ショート診断</h1>
           <p className="text-xs text-gray-400 mt-1">…生年月日、教えてくれたら読んでくるよ</p>
         </div>
 
@@ -289,7 +294,7 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
               </select>
             </div>
           </div>
-          <button type="submit" className="w-full py-3.5 rounded-full bg-rose-400 text-white font-medium text-sm hover:bg-rose-500 transition-colors mt-2">無料で診断する</button>
+          <button type="submit" className="w-full py-3.5 rounded-full text-white font-medium text-sm transition-colors mt-2" style={{ background: "var(--gold)" }}>無料で診断する</button>
         </form>
       </div>
     </main>
