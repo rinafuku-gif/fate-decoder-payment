@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripeInstance } from "@/lib/stripe";
 import Stripe from "stripe";
+import { db } from "@/lib/db";
+import { diagnoses } from "@/drizzle/schema";
 
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -43,8 +45,18 @@ export async function POST(request: NextRequest) {
         ref,
       });
 
-      // TODO: Notion or Google Sheets logging
-      // For now, console logging is sufficient for MVP validation
+      // DB記録
+      try {
+        await db.insert(diagnoses).values({
+          refId: ref,
+          mode,
+          paidAmount: Math.round((session.amount_total || 0) / 1),
+          stripeSessionId: session.id,
+          createdAt: new Date().toISOString(),
+        });
+      } catch (dbErr) {
+        console.error("[Webhook] DB insert error:", dbErr);
+      }
       break;
     }
 

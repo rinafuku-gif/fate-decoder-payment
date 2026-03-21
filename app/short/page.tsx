@@ -79,6 +79,18 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
         };
       }
 
+      // DB記録（fire-and-forget）
+      fetch("/api/log-diagnosis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ref: ref || "direct",
+          mode: "short",
+          name: form.name,
+          birthDate: `${form.year}-${String(parseInt(form.month)).padStart(2, "0")}-${String(parseInt(form.day)).padStart(2, "0")}`,
+        }),
+      }).catch(() => {});
+
       setResult({
         name: form.name,
         data,
