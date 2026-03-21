@@ -184,21 +184,29 @@ ${config.promptStyle}
             {step === "intro" && (
               <motion.div key="intro" exit={{ opacity: 0 }} className="text-center">
                 <motion.h1
-                  className="text-5xl sm:text-6xl font-bold text-white tracking-tight mb-3"
+                  className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-2"
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.8 }}
                 >
-                  うらら
+                  星の図書館
                 </motion.h1>
                 <motion.p
-                  className="text-sm"
+                  className="text-sm text-white/50 mb-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  うららとれきが、あなたの星を読み解く
+                </motion.p>
+                <motion.p
+                  className="text-xs"
                   style={{ color: "var(--gold)" }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
+                  transition={{ delay: 0.7 }}
                 >
-                  6つの占術で読む、あなたの物語
+                  6つの占術 × AI
                 </motion.p>
                 <motion.div
                   className="flex justify-center gap-1 mt-8"
@@ -549,7 +557,7 @@ ${config.promptStyle}
         {["intro", "char_select", "result"].includes(step) && (
           <FadeIn delay={step === "intro" ? 1.5 : 0.5}>
             <footer className="text-center text-[11px] text-white/20 pb-6 space-y-1">
-              <p>&copy; 2026 うらら · Produced by SATOYAMA AI BASE</p>
+              <p>&copy; 2026 星の図書館 · Produced by SATOYAMA AI BASE</p>
               <p>
                 <a href="/legal" className="hover:text-white/40 transition-colors">特定商取引法に基づく表記</a>
                 {" · "}

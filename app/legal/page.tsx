@@ -25,7 +25,7 @@ export default function LegalPage() {
           </tbody>
         </table>
         <footer className="text-center text-[11px] text-white/20 mt-12">
-          <p>&copy; 2026 うらら · Produced by SATOYAMA AI BASE</p>
+          <p>&copy; 2026 星の図書館 · Produced by SATOYAMA AI BASE</p>
         </footer>
       </div>
     </main>
