@@ -1,32 +1,37 @@
-import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { NextRequest, NextResponse } from "next/server";
+import { getStripeInstance } from "@/lib/stripe";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const priceId = process.env.STRIPE_PRICE_ID;
-
-  if (!priceId) {
-    return NextResponse.json(
-      { error: "STRIPE_PRICE_ID is not configured" },
-      { status: 500 }
-    );
-  }
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const body = await request.json();
+    const mode = body.mode as "full" | "compatibility";
+    const ref = body.ref || "direct";
+
+    const priceId =
+      mode === "compatibility"
+        ? process.env.STRIPE_PRICE_ID_COMPAT
+        : process.env.STRIPE_PRICE_ID_FULL;
+
+    if (!priceId) {
+      return NextResponse.json(
+        { error: `STRIPE_PRICE_ID for ${mode} is not configured` },
+        { status: 500 }
+      );
+    }
+
+    const session = await getStripeInstance().checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: priceId, quantity: 1 }],
       mode: "payment",
-      success_url: `${appUrl}/api/callback?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/?cancelled=true`,
+      success_url: `${appUrl}/api/callback?session_id={CHECKOUT_SESSION_ID}&mode=${mode}`,
+      cancel_url: `${appUrl}/?cancelled=true${ref !== "direct" ? `&ref=${ref}` : ""}`,
       locale: "ja",
       metadata: {
         service: "fate-decoder",
+        mode,
+        ref,
       },
     });
 

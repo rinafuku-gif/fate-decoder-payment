@@ -1,38 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
 import { createToken } from "@/lib/tokens";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const sessionId = searchParams.get("session_id");
-  const fateDecoderUrl =
-    process.env.FATE_DECODER_URL || "https://v0-fate-decoder.vercel.app";
+  const mode = searchParams.get("mode") || "full";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   if (!sessionId) {
-    return NextResponse.redirect(
-      new URL("/?error=missing_session", request.url)
-    );
+    return NextResponse.redirect(new URL("/?error=missing_session", appUrl));
   }
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await getStripeInstance().checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status !== "paid") {
-      return NextResponse.redirect(
-        new URL("/?error=payment_not_completed", request.url)
-      );
+      return NextResponse.redirect(new URL("/?error=payment_not_completed", appUrl));
     }
 
-    // Generate one-time token
     const token = createToken(sessionId);
+    const ref = session.metadata?.ref || "";
 
-    // Redirect to Fate Decoder with token
-    const redirectUrl = new URL(fateDecoderUrl);
+    const redirectPath = mode === "compatibility" ? "/compatibility" : "/full";
+    const redirectUrl = new URL(redirectPath, appUrl);
     redirectUrl.searchParams.set("payment_token", token);
+    if (ref && ref !== "direct") {
+      redirectUrl.searchParams.set("ref", ref);
+    }
 
     return NextResponse.redirect(redirectUrl.toString());
   } catch (err) {
     console.error("Callback error:", err);
-    return NextResponse.redirect(new URL("/?error=verification_failed", request.url));
+    return NextResponse.redirect(new URL("/?error=verification_failed", appUrl));
   }
 }

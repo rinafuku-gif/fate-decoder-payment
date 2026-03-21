@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -7,15 +7,15 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Fate Decoder — AIパーソナル占い鑑定 | SATOYAMA AI BASE",
+  title: "Fate Decoder — 生年月日でわかる、あなたの今",
   description:
-    "6つの占術（西洋占星術・四柱推命・数秘術・手相・タロット・九星気学）をAIが統合したパーソナル鑑定。¥200で今すぐ体験。",
+    "6つの占術（西洋占星術・四柱推命・数秘術・マヤ暦・算命学・宿曜）をAIが読み解くパーソナル鑑定。ショート診断は無料。",
+  openGraph: {
+    title: "Fate Decoder — 生年月日でわかる、あなたの今",
+    description: "6つの占術をAIが読み解くパーソナル鑑定。ショート診断は無料。",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -24,10 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="ja" className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

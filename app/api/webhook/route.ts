@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
 import Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = getStripeInstance().webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
@@ -32,25 +32,30 @@ export async function POST(request: NextRequest) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      console.log("Payment completed:", {
+      const ref = session.metadata?.ref || "direct";
+      const mode = session.metadata?.mode || "unknown";
+
+      console.log("[Webhook] Payment completed:", {
         sessionId: session.id,
-        customerEmail: session.customer_details?.email,
+        email: session.customer_details?.email,
         amount: session.amount_total,
-        currency: session.currency,
-        metadata: session.metadata,
+        mode,
+        ref,
       });
-      // Future: save to database, send confirmation email, etc.
+
+      // TODO: Notion or Google Sheets logging
+      // For now, console logging is sufficient for MVP validation
       break;
     }
 
     case "payment_intent.payment_failed": {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      console.error("Payment failed:", paymentIntent.id);
+      console.error("[Webhook] Payment failed:", paymentIntent.id);
       break;
     }
 
     default:
-      console.log(`Unhandled event type: ${event.type}`);
+      console.log(`[Webhook] Unhandled event type: ${event.type}`);
   }
 
   return NextResponse.json({ received: true });
