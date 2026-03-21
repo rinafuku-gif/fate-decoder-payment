@@ -22,7 +22,7 @@ export default function ChatBubble({ characterImage, characterName, characterVid
       className="flex items-start gap-3 mb-4"
     >
       <div className="shrink-0">
-        <div className="w-10 h-10 rounded-full overflow-hidden border" style={{ borderColor: "rgba(201,169,110,0.4)" }}>
+        <div className="w-10 h-10 rounded-full overflow-hidden" style={{ border: "1.5px solid rgba(201,169,110,0.5)", boxShadow: "0 0 12px rgba(201,169,110,0.15)" }}>
           {characterVideo ? (
             <video src={characterVideo} autoPlay loop muted playsInline className="w-full h-full object-cover" />
           ) : (
@@ -32,7 +32,15 @@ export default function ChatBubble({ characterImage, characterName, characterVid
           )}
         </div>
       </div>
-      <div className="rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
+      {/* Dark semi-transparent bubble — NO backdrop-blur (verified: readability risk with moving Aurora) */}
+      <div
+        className="rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]"
+        style={{
+          background: "rgba(15, 20, 40, 0.85)",
+          border: "1px solid rgba(201,169,110,0.15)",
+          boxShadow: "0 2px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)",
+        }}
+      >
         <p className="text-sm text-white/90 leading-relaxed">
           <TypeWriter text={text} speed={speed} delay={200} onComplete={onComplete} />
         </p>

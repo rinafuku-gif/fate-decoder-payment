@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import StarField from "@/components/StarField";
+import Aurora from "@/components/Aurora";
+import GrainOverlay from "@/components/GrainOverlay";
 import TouchParticles from "@/components/TouchParticles";
 import ChatBubble from "@/components/ChatBubble";
 import ProgressBar from "@/components/ProgressBar";
@@ -89,7 +91,9 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen relative overflow-hidden" style={{ background: "var(--navy)" }}>
+      <Aurora />
       <StarField />
+      <GrainOverlay />
       <TouchParticles />
       <SoundToggle />
       <div className="relative z-20 max-w-lg mx-auto px-5 min-h-screen flex flex-col">
@@ -104,7 +108,13 @@ export default function HomePage() {
             {/* INTRO */}
             {step === "intro" && (
               <motion.div key="intro" exit={{ opacity: 0 }} className="text-center">
-                <motion.h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-2" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8 }}>
+                <motion.h1
+                className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-2"
+                style={{ fontFamily: "var(--font-serif), serif" }}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.8 }}
+              >
                   星の図書館
                 </motion.h1>
                 <motion.p className="text-sm text-white/50 mb-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
@@ -133,7 +143,7 @@ export default function HomePage() {
                         <TiltCard
                           onClick={() => { playTap(); setCharacter(c); go("ask_name"); }}
                           className="rounded-2xl border overflow-hidden cursor-pointer relative"
-                          style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(201,169,110,0.3)" }}
+                          style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(201,169,110,0.25)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
                         >
                           <div className="aspect-[4/3] overflow-hidden">
                             {cfg.videoIdle ? (
@@ -163,7 +173,7 @@ export default function HomePage() {
                 {inputReady && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 ml-13">
                     <input type="text" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) go("ask_birthday"); }} placeholder="ニックネームでOK" autoFocus
-                      className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/30 outline-none" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(201,169,110,0.3)" }} />
+                      className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-white/30 outline-none" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(201,169,110,0.2)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }} />
                     <button onClick={() => { playTap(); if (name.trim()) go("ask_birthday"); }} disabled={!name.trim()} className="mt-2 w-full py-2.5 rounded-full text-sm font-medium text-white disabled:opacity-30" style={{ background: "var(--gold)" }}>
                       次へ
                     </button>
@@ -179,17 +189,17 @@ export default function HomePage() {
                 {inputReady && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-3 ml-13">
                     <div className="grid grid-cols-3 gap-2 mb-3">
-                      <select value={year} onChange={(e) => setYear(e.target.value)} className="px-2 py-3 rounded-xl text-sm text-white text-center outline-none appearance-none" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(201,169,110,0.3)" }}>
+                      <select value={year} onChange={(e) => setYear(e.target.value)} className="px-2 py-3 rounded-xl text-sm text-white text-center outline-none appearance-none" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(201,169,110,0.2)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}>
                         {Array.from({ length: 80 }, (_, i) => 2010 - i).map((y) => (
                           <option key={y} value={y} className="bg-gray-800 text-white">{y}年</option>
                         ))}
                       </select>
-                      <select value={month} onChange={(e) => setMonth(e.target.value)} className="px-2 py-3 rounded-xl text-sm text-white text-center outline-none appearance-none" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(201,169,110,0.3)" }}>
+                      <select value={month} onChange={(e) => setMonth(e.target.value)} className="px-2 py-3 rounded-xl text-sm text-white text-center outline-none appearance-none" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(201,169,110,0.2)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}>
                         {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                           <option key={m} value={m} className="bg-gray-800 text-white">{m}月</option>
                         ))}
                       </select>
-                      <select value={day} onChange={(e) => setDay(e.target.value)} className="px-2 py-3 rounded-xl text-sm text-white text-center outline-none appearance-none" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(201,169,110,0.3)" }}>
+                      <select value={day} onChange={(e) => setDay(e.target.value)} className="px-2 py-3 rounded-xl text-sm text-white text-center outline-none appearance-none" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(201,169,110,0.2)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}>
                         {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                           <option key={d} value={d} className="bg-gray-800 text-white">{d}日</option>
                         ))}
@@ -258,7 +268,7 @@ export default function HomePage() {
                       { label: "中心星", value: result.data.bazi.weapon },
                       { label: "宿曜", value: result.data.sukuyo },
                     ].map((d, i) => (
-                      <div key={i} className="text-center p-2 rounded-xl border" style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(201,169,110,0.15)" }}>
+                      <div key={i} className="text-center p-2 rounded-xl border" style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(201,169,110,0.15)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}>
                         <p className="text-[10px]" style={{ color: "var(--gold)" }}>{d.label}</p>
                         <p className="text-xs font-medium text-white/80">{d.value}</p>
                       </div>
@@ -283,11 +293,11 @@ export default function HomePage() {
 
                 <FadeIn delay={3.0}>
                   <div className="grid grid-cols-2 gap-3 mb-6">
-                    <div className="p-3 rounded-xl border text-center" style={{ background: "rgba(201,169,110,0.08)", borderColor: "rgba(201,169,110,0.2)" }}>
+                    <div className="p-3 rounded-xl border text-center" style={{ background: "rgba(201,169,110,0.06)", borderColor: "rgba(201,169,110,0.2)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}>
                       <p className="text-[10px] mb-1" style={{ color: "var(--gold)" }}>今日のアクション</p>
                       <p className="text-xs text-white/80">{result.action}</p>
                     </div>
-                    <div className="p-3 rounded-xl border text-center" style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(201,169,110,0.15)" }}>
+                    <div className="p-3 rounded-xl border text-center" style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(201,169,110,0.15)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}>
                       <p className="text-[10px] mb-1" style={{ color: "var(--gold)" }}>ラッキーアイテム</p>
                       <p className="text-xs text-white/80">{result.luckyItem}</p>
                     </div>
