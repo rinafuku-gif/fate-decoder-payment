@@ -20,7 +20,7 @@ export const diagnoses = sqliteTable("diagnoses", {
   userName: text("user_name"),
   birthDate: text("birth_date"),
   paidAmount: integer("paid_amount").notNull().default(0),
-  stripeSessionId: text("stripe_session_id"),
+  stripeSessionId: text("stripe_session_id").unique(),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 

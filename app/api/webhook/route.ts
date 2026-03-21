@@ -3,6 +3,7 @@ import { getStripeInstance } from "@/lib/stripe";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
 import { diagnoses } from "@/drizzle/schema";
+import { eq } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -45,15 +46,20 @@ export async function POST(request: NextRequest) {
         ref,
       });
 
-      // DB記録
+      // DB記録（重複防止: 同一stripeSessionIdがあればスキップ）
       try {
-        await db.insert(diagnoses).values({
-          refId: ref,
-          mode,
-          paidAmount: Math.round((session.amount_total || 0) / 1),
-          stripeSessionId: session.id,
-          createdAt: new Date().toISOString(),
-        });
+        const existing = await db.select({ id: diagnoses.id }).from(diagnoses).where(eq(diagnoses.stripeSessionId, session.id)).limit(1);
+        if (existing.length === 0) {
+          await db.insert(diagnoses).values({
+            refId: ref,
+            mode,
+            paidAmount: Math.round((session.amount_total || 0) / 1),
+            stripeSessionId: session.id,
+            createdAt: new Date().toISOString(),
+          });
+        } else {
+          console.log("[Webhook] Duplicate session skipped:", session.id);
+        }
       } catch (dbErr) {
         console.error("[Webhook] DB insert error:", dbErr);
       }
