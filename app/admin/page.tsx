@@ -77,7 +77,7 @@ function AdminContent() {
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-lg font-bold text-gray-800">Fate Decoder 管理</h1>
+          <h1 className="text-lg font-bold text-gray-800">星の図書館 管理</h1>
           <span className="text-xs text-gray-400">Admin Dashboard</span>
         </div>
 
@@ -177,6 +177,7 @@ function AdminContent() {
                       <th className="text-left px-4 py-2">日時</th>
                       <th className="text-left px-4 py-2">名前</th>
                       <th className="text-left px-4 py-2">モード</th>
+                      <th className="text-left px-4 py-2">テーマ</th>
                       <th className="text-left px-4 py-2">場所</th>
                       <th className="text-right px-4 py-2">金額</th>
                     </tr>
@@ -191,6 +192,7 @@ function AdminContent() {
                             {d.mode}
                           </span>
                         </td>
+                        <td className="px-4 py-2 text-xs text-gray-500">{d.topic || "—"}</td>
                         <td className="px-4 py-2 font-mono text-xs text-gray-400">{d.ref_id}</td>
                         <td className="px-4 py-2 text-right">{d.paid_amount > 0 ? `¥${d.paid_amount}` : "無料"}</td>
                       </tr>

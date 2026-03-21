@@ -118,7 +118,7 @@ export default function FullPage() {
       const html = `
         <div class="max-w-lg mx-auto px-5 py-8">
           <header class="text-center mb-6">
-            <p class="text-xs text-purple-400 tracking-widest mb-1">Fate Decoder</p>
+            <p class="text-xs text-purple-400 tracking-widest mb-1">星の図書館</p>
             <h1 class="text-xl font-bold text-gray-800">${safeName} さんへのフル鑑定</h1>
             ${form.concern ? `<p class="text-xs text-gray-400 mt-2">「${escapeHtml(form.concern)}」</p>` : ""}
           </header>
@@ -136,7 +136,7 @@ export default function FullPage() {
             <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">${escapeHtml(story.final.text || "")}</p>
             ${story.final.magic ? `<div class="mt-3 p-3 rounded-xl bg-purple-50 border border-purple-100 text-center"><p class="text-[10px] text-purple-400 mb-1">今日からできるアクション</p><p class="text-xs font-medium text-gray-700">${escapeHtml(story.final.magic)}</p></div>` : ""}
           </div>
-          <footer class="text-center text-xs text-gray-300 mt-8">Fate Decoder — Full Reading</footer>
+          <footer class="text-center text-xs text-gray-300 mt-8">星の図書館 — Full Reading</footer>
         </div>
       `;
 
@@ -205,7 +205,7 @@ export default function FullPage() {
         </button>
 
         <div className="text-center mb-6">
-          <p className="text-xs text-purple-400 tracking-widest mb-1">Fate Decoder</p>
+          <p className="text-xs text-purple-400 tracking-widest mb-1">星の図書館</p>
           <h1 className="text-xl font-bold text-gray-800">フル鑑定</h1>
           <p className="text-xs text-gray-400 mt-1">¥200 — 6000文字超の詳細レポート</p>
         </div>

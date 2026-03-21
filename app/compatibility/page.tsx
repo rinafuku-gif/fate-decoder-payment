@@ -128,7 +128,7 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
       <main className="min-h-screen bg-[var(--background)]">
         <div className="max-w-lg mx-auto px-5 py-8">
           <header className="text-center mb-6">
-            <p className="text-xs text-purple-400 tracking-widest mb-1">Fate Decoder</p>
+            <p className="text-xs text-purple-400 tracking-widest mb-1">星の図書館</p>
             <h1 className="text-xl font-bold text-gray-800">{result.name1} &times; {result.name2}</h1>
             <p className="text-xs text-gray-400 mt-1">{COMPAT_TYPES.find(t => t.id === result.type)?.label}</p>
           </header>
@@ -187,7 +187,7 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
             </button>
           </div>
 
-          <footer className="text-center text-xs text-gray-300 mt-8">Fate Decoder — Compatibility</footer>
+          <footer className="text-center text-xs text-gray-300 mt-8">星の図書館 — Compatibility</footer>
         </div>
       </main>
     );
@@ -199,7 +199,7 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
         <div className="max-w-lg mx-auto px-5 py-8">
           <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-block">← 戻る</button>
           <div className="text-center mb-6">
-            <p className="text-xs text-purple-400 tracking-widest mb-1">Fate Decoder</p>
+            <p className="text-xs text-purple-400 tracking-widest mb-1">星の図書館</p>
             <h1 className="text-xl font-bold text-gray-800">相性占い</h1>
             <p className="text-xs text-gray-400 mt-1">タイプを選んでください</p>
           </div>
@@ -223,7 +223,7 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
       <div className="max-w-lg mx-auto px-5 py-8">
         <button onClick={() => setScreen("type-select")} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-block">← タイプ選択へ</button>
         <div className="text-center mb-6">
-          <p className="text-xs text-purple-400 tracking-widest mb-1">Fate Decoder</p>
+          <p className="text-xs text-purple-400 tracking-widest mb-1">星の図書館</p>
           <h1 className="text-xl font-bold text-gray-800">相性占い — {COMPAT_TYPES.find(t => t.id === compatType)?.label}</h1>
         </div>
         <form onSubmit={handleSubmit} className="space-y-5">

@@ -5,11 +5,12 @@ import { diagnoses } from "@/drizzle/schema";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { ref, mode, name, birthDate } = body;
+    const { ref, mode, name, birthDate, topic } = body;
 
     await db.insert(diagnoses).values({
       refId: ref || "direct",
       mode: mode || "short",
+      topic: topic || null,
       userName: name || null,
       birthDate: birthDate || null,
       paidAmount: 0,

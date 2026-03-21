@@ -14,7 +14,34 @@ import { CHARACTER_CONFIG, type Character } from "@/lib/character";
 import { calculateAll } from "@/lib/fortune-calc";
 import { generateFortune } from "@/app/actions";
 
-type Step = "intro" | "char_select" | "ask_name" | "ask_birthday" | "loading" | "result";
+/* ━━━ Topic config ━━━ */
+type TopicId = "general" | "work" | "love" | "social" | "money";
+
+const TOPICS: { id: TopicId; label: string; desc: string; icon: string }[] = [
+  { id: "general", label: "総合運", desc: "本質を総合的に", icon: "✦" },
+  { id: "work", label: "仕事運", desc: "才能とキャリア", icon: "◈" },
+  { id: "love", label: "恋愛運", desc: "恋の傾向と相性", icon: "♡" },
+  { id: "social", label: "対人関係", desc: "人との関わり方", icon: "◎" },
+  { id: "money", label: "金運", desc: "お金との相性", icon: "◇" },
+];
+
+const TOPIC_SECTIONS: Record<TopicId, { title: string }[]> = {
+  general: [{ title: "性格の核心" }, { title: "人間関係" }, { title: "才能・仕事" }],
+  work: [{ title: "仕事スタイル" }, { title: "強み・才能" }, { title: "キャリアの転機" }],
+  love: [{ title: "恋愛パターン" }, { title: "理想の相手" }, { title: "恋のアドバイス" }],
+  social: [{ title: "関わり方の特徴" }, { title: "相性の良いタイプ" }, { title: "対人力" }],
+  money: [{ title: "お金の傾向" }, { title: "稼ぎ方・才能" }, { title: "金運アップのヒント" }],
+};
+
+const TOPIC_PROMPT_FOCUS: Record<TopicId, string> = {
+  general: "総合的な性格分析。section1=性格の本質と内面、section2=人間関係の傾向と相性、section3=才能と適性",
+  work: "仕事運・キャリア分析。section1=仕事の進め方と特徴、section2=仕事で活かせる強み、section3=転機の時期とチャンスの掴み方",
+  love: "恋愛運分析。section1=恋愛の傾向と特徴、section2=相性の良いパートナー像、section3=恋愛を良くするための具体的助言",
+  social: "対人関係分析。section1=人との関わり方のパターン、section2=居心地の良い人間関係の特徴、section3=コミュニケーションの強みと課題",
+  money: "金運分析。section1=お金に対する考え方と使い方、section2=収入を得る才能とスタイル、section3=金運を上げるための具体策",
+};
+
+type Step = "intro" | "char_select" | "ask_name" | "ask_birthday" | "ask_topic" | "loading" | "result";
 
 export default function HomePage() {
   const [step, setStep] = useState<Step>("intro");
@@ -23,6 +50,7 @@ export default function HomePage() {
   const [year, setYear] = useState("1995");
   const [month, setMonth] = useState("1");
   const [day, setDay] = useState("1");
+  const [topic, setTopic] = useState<TopicId>("general");
   const [inputReady, setInputReady] = useState(false);
   const [ref, setRef] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
@@ -38,7 +66,6 @@ export default function HomePage() {
     else { const s = sessionStorage.getItem("fd_ref"); if (s) setRef(s); }
   }, []);
 
-  // Mouse tracking for parallax
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
       mouseX.set((e.clientX / window.innerWidth - 0.5) * 20);
@@ -52,13 +79,19 @@ export default function HomePage() {
   const onBubbleDone = useCallback(() => setInputReady(true), []);
   const go = useCallback((s: Step) => { setInputReady(false); setStep(s); playTransition(); }, []);
 
-  // Diagnosis
+  // Use ref to ensure topic is always current when runDiagnosis fires
+  const topicRef = useRef(topic);
+  topicRef.current = topic;
+
+  // Diagnosis — topic-aware (reads from ref to avoid stale closure)
   const runDiagnosis = useCallback(async () => {
     if (!character) return;
+    const currentTopic = topicRef.current;
     try {
       const data = calculateAll(parseInt(year), parseInt(month), parseInt(day));
       const config = CHARACTER_CONFIG[character];
-      const prompt = `${config.promptStyle}\n\n以下の人物の6占術データから、あなた（${config.name}）の口調で診断結果を書いてください。\n【対象者】${name} (${year}年${month}月${day}日生まれ)\n【占術データ】マヤ暦:KIN${data.maya.kin}/紋章:${data.maya.glyph}/音:${data.maya.tone}/WS:${data.maya.ws} 算命学:[${data.bazi.weapon}] 四柱推命:年柱[${data.sanmeigaku.year}]/月柱[${data.sanmeigaku.month}]/日柱[${data.sanmeigaku.day}]/日干[${data.bazi.stem}] 数秘:LP${data.numerology.lp} 西洋:${data.western.sign} 宿曜:${data.sukuyo}\n【出力】JSON: {"oneWord":"8-15文字","personality":"200-300文字","relationships":"200-300文字","talent":"200-300文字","action":"20-40文字","luckyItem":"具体的に"}`;
+      const topicFocus = TOPIC_PROMPT_FOCUS[currentTopic];
+      const prompt = `${config.promptStyle}\n\n以下の人物の6占術データから、あなた（${config.name}）の口調で【${TOPICS.find(t => t.id === currentTopic)?.label}】の診断結果を書いてください。\n\n【テーマ】${topicFocus}\n\n【対象者】${name} (${year}年${month}月${day}日生まれ)\n【占術データ】マヤ暦:KIN${data.maya.kin}/紋章:${data.maya.glyph}/音:${data.maya.tone}/WS:${data.maya.ws} 算命学:[${data.bazi.weapon}] 四柱推命:年柱[${data.sanmeigaku.year}]/月柱[${data.sanmeigaku.month}]/日柱[${data.sanmeigaku.day}]/日干[${data.bazi.stem}] 数秘:LP${data.numerology.lp} 西洋:${data.western.sign} 宿曜:${data.sukuyo}\n\n【出力ルール】\n1. section1: 200-300文字。占術データを2つ以上引用\n2. section2: 200-300文字\n3. section3: 200-300文字\n4. oneWord: この人を一言で表す言葉。8-15文字\n5. action: 今日からできるアクション。20-40文字\n6. luckyItem: 具体的に\n\n**必ず純粋なJSON**\n{"oneWord":"","section1":"","section2":"","section3":"","action":"","luckyItem":""}`;
       let parsed: any = {};
       try {
         const text = await generateFortune(prompt);
@@ -67,10 +100,10 @@ export default function HomePage() {
         const l = c.lastIndexOf("}"); if (l !== -1) c = c.substring(0, l + 1);
         parsed = JSON.parse(c);
       } catch {
-        parsed = { oneWord: "…面白い星の配置", personality: `…${data.maya.glyph}の紋章。芯が強い。`, relationships: `${data.western.sign}のあなたは深い絆を求める。`, talent: `「${data.bazi.weapon}」を持ってる。`, action: "…朝5分、深呼吸してみて", luckyItem: "温かい飲み物" };
+        parsed = { oneWord: "…面白い星の配置", section1: `…${data.maya.glyph}の紋章。芯が強い。`, section2: `${data.western.sign}のあなたは深い絆を求める。`, section3: `「${data.bazi.weapon}」を持ってる。`, action: "…朝5分、深呼吸してみて", luckyItem: "温かい飲み物" };
       }
-      fetch("/api/log-diagnosis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ref: ref || "direct", mode: "short", name, birthDate: `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}` }) }).catch(() => {});
-      setResult({ ...parsed, data, name });
+      fetch("/api/log-diagnosis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ref: ref || "direct", mode: "short", topic: currentTopic, name, birthDate: `${year}-${String(parseInt(month)).padStart(2, "0")}-${String(parseInt(day)).padStart(2, "0")}` }) }).catch(() => {});
+      setResult({ ...parsed, data, name, topic: currentTopic });
       setStep("result");
       playReveal();
     } catch { go("ask_name"); }
@@ -86,11 +119,22 @@ export default function HomePage() {
   }, [step, runDiagnosis]);
 
   const handleShare = async () => {
-    const t = `${result?.name}「${result?.oneWord}」\n\n星の図書館 で無料診断 →`;
+    const topicLabel = TOPICS.find(t => t.id === result?.topic)?.label || "総合運";
+    const t = `${result?.name}の${topicLabel}「${result?.oneWord}」\n\n星の図書館 で無料診断 →`;
     const url = window.location.origin + (ref ? `?ref=${ref}` : "");
     if (navigator.share) { try { await navigator.share({ title: "星の図書館", text: t, url }); } catch {} }
     else { try { await navigator.clipboard.writeText(`${t}\n${url}`); setToast("コピーしました"); setTimeout(() => setToast(null), 2000); } catch {} }
   };
+
+  // Try another topic
+  const handleRetryTopic = (newTopic: TopicId) => {
+    setTopic(newTopic);
+    setResult(null);
+    playTap();
+    go("loading");
+  };
+
+  const sections = result?.topic ? TOPIC_SECTIONS[result.topic as TopicId] : TOPIC_SECTIONS.general;
 
   return (
     <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
@@ -107,13 +151,7 @@ export default function HomePage() {
             {/* ━━━ INTRO ━━━ */}
             {step === "intro" && (
               <motion.div key="intro" exit={{ opacity: 0, scale: 0.95 }} className="text-center">
-                {/* Kinetic typography title */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 1.5 }}
-                  className="mb-6"
-                >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.5 }} className="mb-6">
                   <motion.h1
                     className="text-5xl sm:text-7xl font-bold tracking-tight mb-3"
                     style={{
@@ -130,26 +168,13 @@ export default function HomePage() {
                   >
                     星の図書館
                   </motion.h1>
-                  <motion.p
-                    className="text-white/40 text-sm tracking-widest"
-                    initial={{ y: 10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 1.0 }}
-                  >
+                  <motion.p className="text-white/40 text-sm tracking-widest" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.0 }}>
                     うららとれきが、あなたの星を読み解く
                   </motion.p>
-                  <motion.p
-                    className="text-xs mt-2 tracking-[0.3em]"
-                    style={{ color: "var(--gold)" }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.6 }}
-                    transition={{ delay: 1.5 }}
-                  >
-                    6 DIVINATIONS × AI
+                  <motion.p className="text-xs mt-2 tracking-[0.3em]" style={{ color: "var(--gold)" }} initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} transition={{ delay: 1.5 }}>
+                    6 DIVINATIONS × AI × 5 THEMES
                   </motion.p>
                 </motion.div>
-
-                {/* Enter button */}
                 <motion.button
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -168,12 +193,7 @@ export default function HomePage() {
             {/* ━━━ CHAR SELECT ━━━ */}
             {step === "char_select" && (
               <motion.div key="cs" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: -30 }}>
-                <motion.p
-                  className="text-center text-white/40 text-sm mb-8 tracking-wide"
-                  initial={{ y: -10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
+                <motion.p className="text-center text-white/40 text-sm mb-8 tracking-wide" initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>
                   …どっちに読んでもらう？
                 </motion.p>
                 <div className="grid grid-cols-2 gap-5">
@@ -202,7 +222,6 @@ export default function HomePage() {
                           ) : (
                             <Image src={cfg.image} alt={cfg.name} width={382} height={510} className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
                           )}
-                          {/* Hover glow overlay */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                           <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                             <p className="text-base font-bold text-white">{cfg.name}</p>
@@ -228,7 +247,7 @@ export default function HomePage() {
                         onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) { playTap(); go("ask_birthday"); } }}
                         placeholder="ニックネームでOK" autoFocus
                         className="w-full px-4 py-3.5 rounded-2xl text-sm text-white placeholder-white/20 outline-none transition-all focus:ring-1"
-                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(201,169,110,0.2)",  }}
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(201,169,110,0.2)" }}
                       />
                       <motion.button
                         whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}
@@ -273,12 +292,48 @@ export default function HomePage() {
                       <motion.button
                         whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}
                         whileTap={{ scale: 0.97 }}
-                        onClick={() => { playTap(); setStep("loading"); }}
+                        onClick={() => { playTap(); go("ask_topic"); }}
                         className="w-full py-3 rounded-full text-sm font-medium text-white transition-all"
                         style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.6), rgba(201,169,110,0.3))", border: "1px solid rgba(201,169,110,0.3)" }}
                       >
-                        …読んでくる
+                        次へ
                       </motion.button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+
+            {/* ━━━ ASK TOPIC — テーマ選択 ━━━ */}
+            {step === "ask_topic" && charConfig && (
+              <motion.div key="topic" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
+                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text={`…${name}、何について知りたい？`} onComplete={onBubbleDone} />
+                <AnimatePresence>
+                  {inputReady && (
+                    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mt-4 ml-13 space-y-2">
+                      {TOPICS.map((t, i) => (
+                        <motion.button
+                          key={t.id}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.08 }}
+                          whileHover={{ scale: 1.02, boxShadow: "0 0 25px rgba(201,169,110,0.15)" }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => { playTap(); setTopic(t.id); setStep("loading"); }}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all group"
+                          style={{
+                            background: "rgba(255,255,255,0.03)",
+                            border: "1px solid rgba(201,169,110,0.15)",
+                          }}
+                        >
+                          <span className="text-lg opacity-60 group-hover:opacity-100 transition-opacity" style={{ color: "var(--gold)" }}>{t.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white/90">{t.label}</p>
+                            <p className="text-[11px] text-white/35">{t.desc}</p>
+                          </div>
+                          <span className="text-white/15 group-hover:text-white/40 transition-colors text-xs">→</span>
+                        </motion.button>
+                      ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -289,7 +344,6 @@ export default function HomePage() {
             {step === "loading" && charConfig && (
               <motion.div key="load" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="text-center">
                 {charConfig.videoSearch ? (
-                  /* Full-width search video */
                   <div className="rounded-2xl overflow-hidden mb-8 mx-auto max-w-sm" style={{ border: "1px solid rgba(201,169,110,0.2)", boxShadow: "0 0 60px rgba(201,169,110,0.1)" }}>
                     <video src={charConfig.videoSearch} autoPlay loop muted playsInline className="w-full h-auto" />
                   </div>
@@ -301,17 +355,10 @@ export default function HomePage() {
                   </motion.div>
                 )}
                 <AnimatePresence mode="wait">
-                  <motion.p
-                    key={loadingStage}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    className="text-sm text-white/60"
-                  >
+                  <motion.p key={loadingStage} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="text-sm text-white/60">
                     {[charConfig.loadingText, "…星の記録を照合してる", "…もう少しだけ待ってて"][loadingStage]}
                   </motion.p>
                 </AnimatePresence>
-                {/* Animated rings */}
                 <div className="relative w-16 h-16 mx-auto mt-8">
                   {[0, 1, 2].map((i) => (
                     <motion.div
@@ -329,7 +376,7 @@ export default function HomePage() {
             {/* ━━━ RESULT ━━━ */}
             {step === "result" && result && charConfig && (
               <motion.div key="result" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-8">
-                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text={`…${result.name}の本、見つけてきたよ。`} speed={35} />
+                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text={`…${result.name}の${TOPICS.find(t => t.id === result.topic)?.label || ""}の本、見つけてきたよ。`} speed={35} />
 
                 {/* oneWord — hero card */}
                 <FadeIn delay={1.5}>
@@ -338,7 +385,9 @@ export default function HomePage() {
                     style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)" }}
                     whileHover={{ boxShadow: "0 0 40px rgba(201,169,110,0.15)" }}
                   >
-                    <p className="text-[11px] text-white/30 mb-2 tracking-widest uppercase">Your Keyword</p>
+                    <p className="text-[11px] text-white/30 mb-2 tracking-widest uppercase">
+                      {TOPICS.find(t => t.id === result.topic)?.label || "Your Keyword"}
+                    </p>
                     <motion.p
                       className="text-2xl sm:text-3xl font-bold"
                       style={{
@@ -381,14 +430,10 @@ export default function HomePage() {
                   </div>
                 </FadeIn>
 
-                {/* Readings */}
+                {/* Readings — topic-specific sections */}
                 <FadeIn delay={2.5}>
                   <div className="space-y-4 mb-6">
-                    {[
-                      { title: "性格の核心", text: result.personality },
-                      { title: "人間関係", text: result.relationships },
-                      { title: "才能・仕事", text: result.talent },
-                    ].map((s, i) => (
+                    {sections.map((s, i) => (
                       <motion.div
                         key={i}
                         initial={{ opacity: 0, x: -10 }}
@@ -398,7 +443,7 @@ export default function HomePage() {
                         style={{ borderLeftColor: "rgba(201,169,110,0.4)" }}
                       >
                         <h3 className="text-xs font-bold text-white/50 mb-1 tracking-wide">{s.title}</h3>
-                        <p className="text-sm text-white/75 leading-relaxed">{s.text}</p>
+                        <p className="text-sm text-white/75 leading-relaxed">{result[`section${i + 1}`]}</p>
                       </motion.div>
                     ))}
                   </div>
@@ -419,16 +464,43 @@ export default function HomePage() {
                   </div>
                 </FadeIn>
 
+                {/* ━━━ ADDICTIVE: Try another topic ━━━ */}
+                <FadeIn delay={3.3}>
+                  <div className="mb-6">
+                    <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk}
+                      text={`…${TOPICS.find(t => t.id === result.topic)?.label}はこんな感じ。他のテーマも読んでみる？`} speed={28} />
+                    <div className="ml-13 mt-2 flex flex-wrap gap-2">
+                      {TOPICS.filter(t => t.id !== result.topic).map((t, i) => (
+                        <motion.button
+                          key={t.id}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 3.5 + i * 0.08 }}
+                          whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleRetryTopic(t.id)}
+                          className="px-3.5 py-2 rounded-full text-xs font-medium text-white/80 transition-all"
+                          style={{ background: "rgba(201,169,110,0.12)", border: "1px solid rgba(201,169,110,0.25)" }}
+                        >
+                          <span className="mr-1 opacity-70">{t.icon}</span> {t.label}
+                        </motion.button>
+                      ))}
+                    </div>
+                    <p className="ml-13 mt-2 text-[10px] text-white/20">2人の司書 × 5テーマ = 10通りの診断</p>
+                  </div>
+                </FadeIn>
+
                 {/* Upsell */}
-                <FadeIn delay={3.5}>
-                  <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text="…もっと詳しく知りたい？6000文字のレポートがある。書いてこようか？ ¥200だけど。" speed={28} />
+                <FadeIn delay={3.8}>
+                  <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text="…もっと深く知りたい？6000文字のフルレポート、書いてこようか？ ¥200だけど。" speed={28} />
                   <div className="flex gap-2 ml-13 mt-3">
                     <motion.button
                       whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => {
                         fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "full", ref: ref || "direct" }) })
-                          .then(r => r.json()).then(d => { if (d.url) window.location.href = d.url; });
+                          .then(r => r.json()).then(d => { if (d.url) window.location.href = d.url; })
+                          .catch(() => alert("決済ページへの接続に失敗しました。もう一度お試しください。"));
                       }}
                       className="flex-1 py-3 rounded-full text-sm font-medium text-white"
                       style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.5), rgba(201,169,110,0.25))", border: "1px solid rgba(201,169,110,0.3)" }}
@@ -446,10 +518,10 @@ export default function HomePage() {
                     </motion.button>
                   </div>
                   <button
-                    onClick={() => { setStep("intro"); setName(""); setResult(null); setCharacter(null); }}
+                    onClick={() => { setStep("intro"); setName(""); setResult(null); setCharacter(null); setTopic("general"); }}
                     className="w-full mt-4 py-2 text-[11px] text-white/20 hover:text-white/40 transition-colors"
                   >
-                    もう一度やる
+                    最初からやり直す
                   </button>
                 </FadeIn>
               </motion.div>
@@ -459,7 +531,7 @@ export default function HomePage() {
 
         {/* Footer */}
         {["intro", "result"].includes(step) && (
-          <FadeIn delay={step === "intro" ? 2.5 : 4.0}>
+          <FadeIn delay={step === "intro" ? 2.5 : 4.5}>
             <footer className="text-center text-[11px] text-white/15 pb-6 space-y-1">
               <p>&copy; 2026 星の図書館 · Produced by SATOYAMA AI BASE</p>
               <p>
@@ -482,7 +554,6 @@ export default function HomePage() {
         </AnimatePresence>
       </div>
 
-      {/* Shimmer keyframe for kinetic typography */}
       <style jsx global>{`
         @keyframes shimmer {
           0% { background-position: 0% 50%; }

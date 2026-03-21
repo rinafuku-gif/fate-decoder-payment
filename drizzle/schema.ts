@@ -16,6 +16,7 @@ export const diagnoses = sqliteTable("diagnoses", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   refId: text("ref_id").notNull().default("direct"),
   mode: text("mode").notNull(), // 'short' | 'full' | 'compatibility'
+  topic: text("topic"), // 'general' | 'work' | 'love' | 'social' | 'money'
   userName: text("user_name"),
   birthDate: text("birth_date"),
   paidAmount: integer("paid_amount").notNull().default(0),

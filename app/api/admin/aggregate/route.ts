@@ -46,7 +46,7 @@ export async function POST() {
     const statementHtml = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
         <h1 style="font-size: 18px; border-bottom: 2px solid #c084fc; padding-bottom: 8px;">
-          Fate Decoder キックバック明細書
+          星の図書館 キックバック明細書
         </h1>
         <table style="width: 100%; margin: 20px 0; font-size: 14px;">
           <tr><td style="color: #666;">設置場所</td><td style="text-align: right; font-weight: bold;">${loc.name}</td></tr>
@@ -57,7 +57,7 @@ export async function POST() {
         </table>
         ${loc.contactName ? `<p style="font-size: 12px; color: #999;">宛先: ${loc.contactName} 様</p>` : ""}
         <p style="font-size: 11px; color: #ccc; margin-top: 40px; text-align: center;">
-          発行: SATOYAMA AI BASE / Fate Decoder
+          発行: SATOYAMA AI BASE / 星の図書館
         </p>
       </div>
     `;
