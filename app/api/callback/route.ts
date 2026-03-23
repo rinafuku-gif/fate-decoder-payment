@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/?error=payment_not_completed", appUrl));
     }
 
-    const token = createToken(sessionId);
+    const token = await createToken(sessionId);
     const ref = session.metadata?.ref || "";
 
     const redirectPath = mode === "compatibility" ? "/compatibility" : "/full";

@@ -120,7 +120,8 @@ export default function HomePage() {
 
   const handleShare = async () => {
     const topicLabel = TOPICS.find(t => t.id === result?.topic)?.label || "総合運";
-    const t = `「${result?.bookTitle || result?.oneWord}」\n\n${result?.name}の星の記録、読んでもらった\n▶ 星の図書館`;
+    const charTag = character === "urara" ? "#うらら担" : "#れき担";
+    const t = `「${result?.bookTitle || result?.oneWord}」\n\n${result?.name}の星の記録、読んでもらった\n▶ 星の図書館\n\n#星の図書館 ${charTag}`;
     const url = window.location.origin + (ref ? `?ref=${ref}` : "");
     if (navigator.share) { try { await navigator.share({ title: "星の図書館", text: t, url }); } catch {} }
     else { try { await navigator.clipboard.writeText(`${t}\n${url}`); setToast("コピーしました"); setTimeout(() => setToast(null), 2000); } catch {} }

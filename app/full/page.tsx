@@ -108,35 +108,35 @@ export default function FullPage() {
       const safeName = escapeHtml(form.name);
       const renderSection = (part: any) => {
         if (!part) return "";
-        return `<div class="mb-6 border-l-3 border-purple-200 pl-4">
-          <p class="text-xs text-purple-400 mb-1">${escapeHtml(part.tag || "")}</p>
-          <h3 class="text-base font-bold text-gray-800 mb-2">${escapeHtml(part.title || "")}</h3>
-          <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">${escapeHtml(part.text || "")}</p>
+        return `<div class="mb-6 border-l-3 border-[rgba(201,169,110,0.3)] pl-4">
+          <p class="text-xs text-[#c9a96e] mb-1">${escapeHtml(part.tag || "")}</p>
+          <h3 class="text-base font-bold text-white/90 mb-2">${escapeHtml(part.title || "")}</h3>
+          <p class="text-sm text-white/60 leading-relaxed whitespace-pre-line">${escapeHtml(part.text || "")}</p>
         </div>`;
       };
 
       const html = `
         <div class="max-w-lg mx-auto px-5 py-8">
           <header class="text-center mb-6">
-            <p class="text-xs text-purple-400 tracking-widest mb-1">星の図書館</p>
-            <h1 class="text-xl font-bold text-gray-800">${safeName} さんへのフル鑑定</h1>
-            ${form.concern ? `<p class="text-xs text-gray-400 mt-2">「${escapeHtml(form.concern)}」</p>` : ""}
+            <p class="text-xs text-[#c9a96e] tracking-widest mb-1">星の図書館</p>
+            <h1 class="text-xl font-bold text-white/90">${safeName} さんへのフル鑑定</h1>
+            ${form.concern ? `<p class="text-xs text-white/40 mt-2">「${escapeHtml(form.concern)}」</p>` : ""}
           </header>
           <div class="grid grid-cols-3 gap-2 mb-6">
             ${[
               { l: "KIN", v: data.maya.kin }, { l: "紋章", v: data.maya.glyph }, { l: "音", v: data.maya.tone },
               { l: "LP", v: data.numerology.lp }, { l: "中心星", v: data.bazi.weapon }, { l: "星座", v: data.western.sign },
-            ].map(d => `<div class="text-center p-2 rounded-xl bg-white border border-purple-50"><p class="text-[10px] text-gray-400">${d.l}</p><p class="text-xs font-medium text-gray-700">${d.v}</p></div>`).join("")}
+            ].map(d => `<div class="text-center p-2 rounded-xl bg-white/5 border border-[rgba(201,169,110,0.15)]"><p class="text-[10px] text-white/40">${d.l}</p><p class="text-xs font-medium text-white/70">${d.v}</p></div>`).join("")}
           </div>
           ${renderSection(story.prologue)}
           ${story.chapters.map((c: any) => renderSection(c)).join("")}
-          <div class="mb-6 border-l-3 border-pink-200 pl-4">
-            <p class="text-xs text-pink-400 mb-1">${escapeHtml(story.final.tag || "#まとめ")}</p>
-            <h3 class="text-base font-bold text-gray-800 mb-2">${escapeHtml(story.final.title || "これからのあなたへ")}</h3>
-            <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">${escapeHtml(story.final.text || "")}</p>
-            ${story.final.magic ? `<div class="mt-3 p-3 rounded-xl bg-purple-50 border border-purple-100 text-center"><p class="text-[10px] text-purple-400 mb-1">今日からできるアクション</p><p class="text-xs font-medium text-gray-700">${escapeHtml(story.final.magic)}</p></div>` : ""}
+          <div class="mb-6 border-l-3 border-[rgba(201,169,110,0.5)] pl-4">
+            <p class="text-xs text-[#c9a96e] mb-1">${escapeHtml(story.final.tag || "#まとめ")}</p>
+            <h3 class="text-base font-bold text-white/90 mb-2">${escapeHtml(story.final.title || "これからのあなたへ")}</h3>
+            <p class="text-sm text-white/60 leading-relaxed whitespace-pre-line">${escapeHtml(story.final.text || "")}</p>
+            ${story.final.magic ? `<div class="mt-3 p-3 rounded-xl bg-[rgba(201,169,110,0.08)] border border-[rgba(201,169,110,0.2)] text-center"><p class="text-[10px] text-[#c9a96e] mb-1">今日からできるアクション</p><p class="text-xs font-medium text-white/70">${escapeHtml(story.final.magic)}</p></div>` : ""}
           </div>
-          <footer class="text-center text-xs text-gray-300 mt-8">星の図書館 — Full Reading</footer>
+          <footer class="text-center text-xs text-white/20 mt-8">星の図書館 — Full Reading</footer>
         </div>
       `;
 
@@ -151,19 +151,19 @@ export default function FullPage() {
 
   if (!verified) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="w-8 h-8 border-3 border-purple-200 border-t-purple-400 rounded-full animate-spin" />
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "#0c0a08" }}>
+        <div className="w-8 h-8 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin" />
       </main>
     );
   }
 
   if (screen === "loading") {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "#0c0a08" }}>
         <div className="text-center">
-          <div className="w-10 h-10 border-3 border-purple-200 border-t-purple-400 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-gray-600">AIがあなたの鑑定書を執筆中...</p>
-          <p className="text-xs text-gray-400 mt-1">30〜60秒ほどお待ちください</p>
+          <div className="w-10 h-10 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-white/60">…あなたの星の記録を読み解いています</p>
+          <p className="text-xs text-white/30 mt-1">30〜60秒ほどお待ちください</p>
         </div>
       </main>
     );
@@ -171,19 +171,19 @@ export default function FullPage() {
 
   if (screen === "result") {
     return (
-      <main className="min-h-screen bg-[var(--background)]">
+      <main className="min-h-screen" style={{ background: "#0c0a08" }}>
         <div dangerouslySetInnerHTML={{ __html: resultHtml }} />
         <div className="max-w-lg mx-auto px-5 pb-8 no-print">
           <div className="flex gap-3">
             <button
               onClick={() => router.push(ref ? `/?ref=${ref}` : "/")}
-              className="flex-1 py-2.5 rounded-full border border-gray-200 text-sm text-gray-600 hover:bg-gray-50"
+              className="flex-1 py-2.5 rounded-full border border-white/10 text-sm text-white/50 hover:bg-white/5 transition-colors"
             >
               トップへ戻る
             </button>
             <button
               onClick={() => window.print()}
-              className="flex-1 py-2.5 rounded-full border border-purple-200 text-sm text-purple-500 hover:bg-purple-50"
+              className="flex-1 py-2.5 rounded-full border border-[rgba(201,169,110,0.3)] text-sm text-[#c9a96e] hover:bg-[rgba(201,169,110,0.05)] transition-colors"
             >
               印刷 / PDF保存
             </button>
@@ -195,35 +195,35 @@ export default function FullPage() {
 
   // Input form
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen" style={{ background: "#0c0a08" }}>
       <div className="max-w-lg mx-auto px-5 py-8">
         <button
           onClick={() => router.push(ref ? `/?ref=${ref}` : "/")}
-          className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-block"
+          className="text-sm text-white/30 hover:text-white/50 mb-4 inline-block transition-colors"
         >
           ← 戻る
         </button>
 
         <div className="text-center mb-6">
-          <p className="text-xs text-purple-400 tracking-widest mb-1">星の図書館</p>
-          <h1 className="text-xl font-bold text-gray-800">フル鑑定</h1>
-          <p className="text-xs text-gray-400 mt-1">¥200 — 6000文字超の詳細レポート</p>
+          <p className="text-xs text-[#c9a96e] tracking-widest mb-1">星の図書館</p>
+          <h1 className="text-xl font-bold text-white/90">フル鑑定</h1>
+          <p className="text-xs text-white/40 mt-1">¥200 — 6000文字超の詳細レポート</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">お名前 <span className="text-pink-400 text-xs">必須</span></label>
-            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="ニックネームでOK" required className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-300 focus:ring-1 focus:ring-purple-200" />
+            <label className="block text-sm font-medium text-white/70 mb-1">お名前 <span className="text-[#c9a96e] text-xs">必須</span></label>
+            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="ニックネームでOK" required className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 placeholder-white/20 focus:outline-none focus:border-[rgba(201,169,110,0.4)] focus:ring-1 focus:ring-[rgba(201,169,110,0.2)]" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">生年月日 <span className="text-pink-400 text-xs">必須</span></label>
+            <label className="block text-sm font-medium text-white/70 mb-1">生年月日 <span className="text-[#c9a96e] text-xs">必須</span></label>
             <div className="grid grid-cols-3 gap-2">
-              <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="1995" required className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:border-purple-300" />
-              <select value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:border-purple-300">
+              <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="1995" required className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 text-center placeholder-white/20 focus:outline-none focus:border-[rgba(201,169,110,0.4)]" />
+              <select value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 text-center focus:outline-none focus:border-[rgba(201,169,110,0.4)]">
                 {Array.from({ length: 12 }, (_, i) => (<option key={i + 1} value={i + 1}>{i + 1}月</option>))}
               </select>
-              <select value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })} className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:border-purple-300">
+              <select value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })} className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 text-center focus:outline-none focus:border-[rgba(201,169,110,0.4)]">
                 {Array.from({ length: 31 }, (_, i) => (<option key={i + 1} value={i + 1}>{i + 1}日</option>))}
               </select>
             </div>
@@ -231,23 +231,23 @@ export default function FullPage() {
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">血液型</label>
-              <select value={form.bloodType} onChange={(e) => setForm({ ...form, bloodType: e.target.value })} className="w-full px-3 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-300">
+              <label className="block text-sm font-medium text-white/70 mb-1">血液型</label>
+              <select value={form.bloodType} onChange={(e) => setForm({ ...form, bloodType: e.target.value })} className="w-full px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 focus:outline-none focus:border-[rgba(201,169,110,0.4)]">
                 <option value="A">A型</option><option value="B">B型</option><option value="O">O型</option><option value="AB">AB型</option><option value="Unknown">不明</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">出生地 <span className="text-gray-300 text-xs">任意</span></label>
-              <input type="text" value={form.birthPlace} onChange={(e) => setForm({ ...form, birthPlace: e.target.value })} placeholder="例: 東京" className="w-full px-3 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-300" />
+              <label className="block text-sm font-medium text-white/70 mb-1">出生地 <span className="text-white/20 text-xs">任意</span></label>
+              <input type="text" value={form.birthPlace} onChange={(e) => setForm({ ...form, birthPlace: e.target.value })} placeholder="例: 東京" className="w-full px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 placeholder-white/20 focus:outline-none focus:border-[rgba(201,169,110,0.4)]" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">相談したいこと <span className="text-gray-300 text-xs">任意</span></label>
-            <textarea value={form.concern} onChange={(e) => setForm({ ...form, concern: e.target.value })} rows={3} placeholder="例: 今の仕事を続けるべきか迷っています..." className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-300 focus:ring-1 focus:ring-purple-200" />
+            <label className="block text-sm font-medium text-white/70 mb-1">相談したいこと <span className="text-white/20 text-xs">任意</span></label>
+            <textarea value={form.concern} onChange={(e) => setForm({ ...form, concern: e.target.value })} rows={3} placeholder="例: 今の仕事を続けるべきか迷っています..." className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 placeholder-white/20 focus:outline-none focus:border-[rgba(201,169,110,0.4)] focus:ring-1 focus:ring-[rgba(201,169,110,0.2)]" />
           </div>
 
-          <button type="submit" className="w-full py-3.5 rounded-full bg-purple-400 text-white font-medium text-sm hover:bg-purple-500 transition-colors">
+          <button type="submit" className="w-full py-3.5 rounded-full text-white font-medium text-sm transition-colors" style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.5), rgba(201,169,110,0.25))", border: "1px solid rgba(201,169,110,0.3)" }}>
             鑑定を開始する
           </button>
         </form>

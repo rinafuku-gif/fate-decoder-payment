@@ -1,6 +1,6 @@
 export default function LegalPage() {
   return (
-    <main className="min-h-screen py-12 px-5" style={{ background: "var(--navy)" }}>
+    <main className="min-h-screen py-12 px-5" style={{ background: "var(--background)" }}>
       <div className="max-w-2xl mx-auto text-white/80 text-sm leading-relaxed">
         <a href="/" className="text-white/30 text-xs hover:text-white/50 transition-colors">← 戻る</a>
         <h1 className="text-xl font-bold text-white mt-4 mb-8">特定商取引法に基づく表記</h1>

@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = verifyAndConsumeToken(token);
+    const result = await verifyAndConsumeToken(token);
 
     if (!result.valid) {
       return NextResponse.json(

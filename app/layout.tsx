@@ -32,6 +32,20 @@ export const metadata: Metadata = {
     title: "星の図書館 — うららとれきが、あなたの星を読み解く",
     description: "星の記録を読み解く。うららとれき、2人の司書があなたの星の本を見つけてくる。ショート診断は無料。",
     type: "website",
+    images: [
+      {
+        url: `${process.env.NEXT_PUBLIC_APP_URL || ""}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "星の図書館",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "星の図書館 — うららとれきが、あなたの星を読み解く",
+    description: "星の記録を読み解く。うららとれき、2人の司書があなたの星の本を見つけてくる。ショート診断は無料。",
+    images: [`${process.env.NEXT_PUBLIC_APP_URL || ""}/og-image.png`],
   },
 };
 

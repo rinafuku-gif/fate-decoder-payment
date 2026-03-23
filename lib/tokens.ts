@@ -1,52 +1,53 @@
 import crypto from "crypto";
-
-interface TokenRecord {
-  token: string;
-  sessionId: string;
-  createdAt: number;
-  used: boolean;
-}
-
-// In-memory token store (MVP). For production, replace with Vercel KV.
-const tokenStore = new Map<string, TokenRecord>();
+import { db } from "@/lib/db";
+import { paymentTokens } from "@/drizzle/schema";
+import { eq, and, lt } from "drizzle-orm";
 
 const TTL_MS = 60 * 60 * 1000; // 1 hour
 
-export function createToken(sessionId: string): string {
+export async function createToken(sessionId: string): Promise<string> {
   const token = crypto.randomBytes(32).toString("hex");
-  tokenStore.set(token, {
+  await db.insert(paymentTokens).values({
     token,
     sessionId,
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
     used: false,
   });
   // Cleanup old tokens opportunistically
-  cleanupExpired();
+  await cleanupExpired();
   return token;
 }
 
-export function verifyAndConsumeToken(token: string): {
+export async function verifyAndConsumeToken(token: string): Promise<{
   valid: boolean;
   sessionId?: string;
   error?: string;
-} {
-  const record = tokenStore.get(token);
+}> {
+  const records = await db
+    .select()
+    .from(paymentTokens)
+    .where(eq(paymentTokens.token, token))
+    .limit(1);
+
+  const record = records[0];
   if (!record) return { valid: false, error: "Token not found" };
   if (record.used) return { valid: false, error: "Token already used" };
-  if (Date.now() - record.createdAt > TTL_MS) {
-    tokenStore.delete(token);
+
+  const createdAt = new Date(record.createdAt).getTime();
+  if (Date.now() - createdAt > TTL_MS) {
+    await db.delete(paymentTokens).where(eq(paymentTokens.id, record.id));
     return { valid: false, error: "Token expired" };
   }
-  record.used = true;
-  tokenStore.set(token, record);
+
+  await db
+    .update(paymentTokens)
+    .set({ used: true })
+    .where(eq(paymentTokens.id, record.id));
+
   return { valid: true, sessionId: record.sessionId };
 }
 
-function cleanupExpired() {
-  const now = Date.now();
-  for (const [key, record] of tokenStore.entries()) {
-    if (now - record.createdAt > TTL_MS) {
-      tokenStore.delete(key);
-    }
-  }
+async function cleanupExpired() {
+  const cutoff = new Date(Date.now() - TTL_MS).toISOString();
+  await db.delete(paymentTokens).where(lt(paymentTokens.createdAt, cutoff));
 }

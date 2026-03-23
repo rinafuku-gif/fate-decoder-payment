@@ -105,19 +105,19 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
 
   if (!verified) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="w-8 h-8 border-3 border-purple-200 border-t-purple-400 rounded-full animate-spin" />
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "#0c0a08" }}>
+        <div className="w-8 h-8 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin" />
       </main>
     );
   }
 
   if (screen === "loading") {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "#0c0a08" }}>
         <div className="text-center">
-          <div className="w-10 h-10 border-3 border-purple-200 border-t-purple-400 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-gray-600">ふたりの星を読み解いています...</p>
-          <p className="text-xs text-gray-400 mt-1">20〜40秒ほどお待ちください</p>
+          <div className="w-10 h-10 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-white/60">…あなたの星の記録を読み解いています</p>
+          <p className="text-xs text-white/30 mt-1">20〜40秒ほどお待ちください</p>
         </div>
       </main>
     );
@@ -125,18 +125,18 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
 
   if (screen === "result" && result) {
     return (
-      <main className="min-h-screen bg-[var(--background)]">
+      <main className="min-h-screen" style={{ background: "#0c0a08" }}>
         <div className="max-w-lg mx-auto px-5 py-8">
           <header className="text-center mb-6">
-            <p className="text-xs text-purple-400 tracking-widest mb-1">星の図書館</p>
-            <h1 className="text-xl font-bold text-gray-800">{result.name1} &times; {result.name2}</h1>
-            <p className="text-xs text-gray-400 mt-1">{COMPAT_TYPES.find(t => t.id === result.type)?.label}</p>
+            <p className="text-xs text-[#c9a96e] tracking-widest mb-1">星の図書館</p>
+            <h1 className="text-xl font-bold text-white/90">{result.name1} &times; {result.name2}</h1>
+            <p className="text-xs text-white/40 mt-1">{COMPAT_TYPES.find(t => t.id === result.type)?.label}</p>
           </header>
 
           {/* Score */}
-          <div className="text-center mb-6 p-5 rounded-2xl bg-gradient-to-r from-pink-50 to-purple-50 border border-purple-100">
-            <p className="text-4xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">{result.score.total}</p>
-            <p className="text-xs text-gray-400">総合相性スコア</p>
+          <div className="text-center mb-6 p-5 rounded-2xl border border-[rgba(201,169,110,0.2)]" style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.08), rgba(201,169,110,0.03))" }}>
+            <p className="text-4xl font-bold text-[#c9a96e]">{result.score.total}</p>
+            <p className="text-xs text-white/40">総合相性スコア</p>
           </div>
 
           {/* Score bars */}
@@ -150,11 +150,11 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
               { label: "宿曜", score: result.score.sukuyo.score },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 w-16 text-right">{item.label}</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-purple-300 to-pink-300 rounded-full" style={{ width: `${item.score}%` }} />
+                <span className="text-xs text-white/40 w-16 text-right">{item.label}</span>
+                <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${item.score}%`, background: "linear-gradient(to right, rgba(201,169,110,0.4), rgba(201,169,110,0.7))" }} />
                 </div>
-                <span className="text-xs text-gray-500 w-6">{item.score}</span>
+                <span className="text-xs text-white/40 w-6">{item.score}</span>
               </div>
             ))}
           </div>
@@ -162,32 +162,32 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
           {/* Stories */}
           <div className="space-y-4 mb-6">
             {[
-              { title: "惹かれ合うポイント", text: result.story.attraction, color: "border-l-pink-300" },
-              { title: "すれ違いやすいポイント", text: result.story.caution, color: "border-l-amber-300" },
+              { title: "惹かれ合うポイント", text: result.story.attraction, color: "border-l-[rgba(201,169,110,0.5)]" },
+              { title: "すれ違いやすいポイント", text: result.story.caution, color: "border-l-[rgba(201,169,110,0.3)]" },
               ...(result.type === "general" && result.story.loveStory ? [
-                { title: "恋愛の相性", text: result.story.loveStory, color: "border-l-red-200" },
-                { title: "ビジネスの相性", text: result.story.businessStory, color: "border-l-blue-200" },
-                { title: "友情の相性", text: result.story.friendStory, color: "border-l-green-200" },
+                { title: "恋愛の相性", text: result.story.loveStory, color: "border-l-[rgba(201,169,110,0.4)]" },
+                { title: "ビジネスの相性", text: result.story.businessStory, color: "border-l-[rgba(201,169,110,0.4)]" },
+                { title: "友情の相性", text: result.story.friendStory, color: "border-l-[rgba(201,169,110,0.4)]" },
               ] : []),
-              { title: "ふたりへのアドバイス", text: result.story.advice, color: "border-l-purple-300" },
+              { title: "ふたりへのアドバイス", text: result.story.advice, color: "border-l-[rgba(201,169,110,0.6)]" },
             ].map((section, i) => (
               <div key={i} className={`border-l-3 pl-4 py-2 ${section.color}`}>
-                <h3 className="text-sm font-bold text-gray-700 mb-1">{section.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{section.text}</p>
+                <h3 className="text-sm font-bold text-white/80 mb-1">{section.title}</h3>
+                <p className="text-sm text-white/60 leading-relaxed">{section.text}</p>
               </div>
             ))}
           </div>
 
           <div className="flex gap-3 no-print">
-            <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="flex-1 py-2.5 rounded-full border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">
+            <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="flex-1 py-2.5 rounded-full border border-white/10 text-sm text-white/50 hover:bg-white/5 transition-colors">
               トップへ戻る
             </button>
-            <button onClick={() => window.print()} className="flex-1 py-2.5 rounded-full border border-purple-200 text-sm text-purple-500 hover:bg-purple-50">
+            <button onClick={() => window.print()} className="flex-1 py-2.5 rounded-full border border-[rgba(201,169,110,0.3)] text-sm text-[#c9a96e] hover:bg-[rgba(201,169,110,0.05)] transition-colors">
               印刷 / PDF保存
             </button>
           </div>
 
-          <footer className="text-center text-xs text-gray-300 mt-8">星の図書館 — Compatibility</footer>
+          <footer className="text-center text-xs text-white/20 mt-8">星の図書館 — Compatibility</footer>
         </div>
       </main>
     );
@@ -195,20 +195,20 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
 
   if (screen === "type-select") {
     return (
-      <main className="min-h-screen bg-[var(--background)]">
+      <main className="min-h-screen" style={{ background: "#0c0a08" }}>
         <div className="max-w-lg mx-auto px-5 py-8">
-          <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-block">← 戻る</button>
+          <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="text-sm text-white/30 hover:text-white/50 mb-4 inline-block transition-colors">← 戻る</button>
           <div className="text-center mb-6">
-            <p className="text-xs text-purple-400 tracking-widest mb-1">星の図書館</p>
-            <h1 className="text-xl font-bold text-gray-800">相性占い</h1>
-            <p className="text-xs text-gray-400 mt-1">タイプを選んでください</p>
+            <p className="text-xs text-[#c9a96e] tracking-widest mb-1">星の図書館</p>
+            <h1 className="text-xl font-bold text-white/90">相性占い</h1>
+            <p className="text-xs text-white/40 mt-1">タイプを選んでください</p>
           </div>
           <div className="space-y-3">
             {COMPAT_TYPES.map((t) => (
               <button key={t.id} onClick={() => { setCompatType(t.id); setScreen("input"); }}
-                className="w-full p-4 rounded-2xl border border-purple-100 bg-purple-50/50 text-left hover:shadow-md hover:scale-[1.01] transition-all">
-                <p className="text-sm font-bold text-gray-800">{t.label}</p>
-                <p className="text-xs text-gray-500">{t.desc}</p>
+                className="w-full p-4 rounded-2xl border border-[rgba(201,169,110,0.15)] bg-[rgba(201,169,110,0.04)] text-left hover:bg-[rgba(201,169,110,0.08)] hover:scale-[1.01] transition-all">
+                <p className="text-sm font-bold text-white/80">{t.label}</p>
+                <p className="text-xs text-white/40">{t.desc}</p>
               </button>
             ))}
           </div>
@@ -219,32 +219,32 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
 
   // Input form
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen" style={{ background: "#0c0a08" }}>
       <div className="max-w-lg mx-auto px-5 py-8">
-        <button onClick={() => setScreen("type-select")} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-block">← タイプ選択へ</button>
+        <button onClick={() => setScreen("type-select")} className="text-sm text-white/30 hover:text-white/50 mb-4 inline-block transition-colors">← タイプ選択へ</button>
         <div className="text-center mb-6">
-          <p className="text-xs text-purple-400 tracking-widest mb-1">星の図書館</p>
-          <h1 className="text-xl font-bold text-gray-800">相性占い — {COMPAT_TYPES.find(t => t.id === compatType)?.label}</h1>
+          <p className="text-xs text-[#c9a96e] tracking-widest mb-1">星の図書館</p>
+          <h1 className="text-xl font-bold text-white/90">相性占い — {COMPAT_TYPES.find(t => t.id === compatType)?.label}</h1>
         </div>
         <form onSubmit={handleSubmit} className="space-y-5">
           {[{ label: "1人目", person: person1, setPerson: setPerson1 }, { label: "2人目", person: person2, setPerson: setPerson2 }].map(({ label, person, setPerson }) => (
-            <div key={label} className="p-4 rounded-2xl border border-purple-100 bg-purple-50/30">
-              <p className="text-sm font-bold text-gray-700 mb-3">{label}</p>
+            <div key={label} className="p-4 rounded-2xl border border-[rgba(201,169,110,0.15)] bg-[rgba(201,169,110,0.03)]">
+              <p className="text-sm font-bold text-white/70 mb-3">{label}</p>
               <div className="space-y-3">
-                <input type="text" value={person.name} onChange={(e) => setPerson({ ...person, name: e.target.value })} placeholder="ニックネーム" required className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-purple-300" />
+                <input type="text" value={person.name} onChange={(e) => setPerson({ ...person, name: e.target.value })} placeholder="ニックネーム" required className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 placeholder-white/20 focus:outline-none focus:border-[rgba(201,169,110,0.4)]" />
                 <div className="grid grid-cols-3 gap-2">
-                  <input type="number" value={person.year} onChange={(e) => setPerson({ ...person, year: e.target.value })} placeholder="1995" required className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center focus:outline-none focus:border-purple-300" />
-                  <select value={person.month} onChange={(e) => setPerson({ ...person, month: e.target.value })} className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center">
+                  <input type="number" value={person.year} onChange={(e) => setPerson({ ...person, year: e.target.value })} placeholder="1995" required className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 text-center placeholder-white/20 focus:outline-none focus:border-[rgba(201,169,110,0.4)]" />
+                  <select value={person.month} onChange={(e) => setPerson({ ...person, month: e.target.value })} className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 text-center">
                     {Array.from({ length: 12 }, (_, i) => (<option key={i + 1} value={i + 1}>{i + 1}月</option>))}
                   </select>
-                  <select value={person.day} onChange={(e) => setPerson({ ...person, day: e.target.value })} className="px-3 py-3 rounded-xl border border-gray-200 text-sm text-center">
+                  <select value={person.day} onChange={(e) => setPerson({ ...person, day: e.target.value })} className="px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 text-center">
                     {Array.from({ length: 31 }, (_, i) => (<option key={i + 1} value={i + 1}>{i + 1}日</option>))}
                   </select>
                 </div>
               </div>
             </div>
           ))}
-          <button type="submit" className="w-full py-3.5 rounded-full bg-purple-400 text-white font-medium text-sm hover:bg-purple-500 transition-colors">
+          <button type="submit" className="w-full py-3.5 rounded-full text-white font-medium text-sm transition-colors" style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.5), rgba(201,169,110,0.25))", border: "1px solid rgba(201,169,110,0.3)" }}>
             相性を診断する
           </button>
         </form>

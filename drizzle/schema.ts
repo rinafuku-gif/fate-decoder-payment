@@ -24,6 +24,14 @@ export const diagnoses = sqliteTable("diagnoses", {
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
+export const paymentTokens = sqliteTable("payment_tokens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  token: text("token").notNull().unique(),
+  sessionId: text("session_id").notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  used: integer("used", { mode: "boolean" }).notNull().default(false),
+});
+
 export const kickbackPayments = sqliteTable("kickback_payments", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   locationRef: text("location_ref").notNull(),

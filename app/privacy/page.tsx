@@ -1,6 +1,6 @@
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen py-12 px-5" style={{ background: "var(--navy)" }}>
+    <main className="min-h-screen py-12 px-5" style={{ background: "var(--background)" }}>
       <div className="max-w-2xl mx-auto text-white/80 text-sm leading-relaxed">
         <a href="/" className="text-white/30 text-xs hover:text-white/50 transition-colors">← 戻る</a>
         <h1 className="text-xl font-bold text-white mt-4 mb-8">プライバシーポリシー</h1>
@@ -8,7 +8,7 @@ export default function PrivacyPage() {
         <div className="space-y-6">
           <section>
             <h2 className="text-base font-bold text-white mb-2">1. 収集する情報</h2>
-            <p>本サービス「うらら」では、以下の情報を収集します。</p>
+            <p>本サービス「星の図書館」では、以下の情報を収集します。</p>
             <ul className="list-disc list-inside mt-2 space-y-1 text-white/60">
               <li>お名前（ニックネーム）</li>
               <li>生年月日</li>

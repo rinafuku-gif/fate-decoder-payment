@@ -5,7 +5,8 @@ const COOKIE_NAME = "fd_admin_session";
 const EXPIRY = 24 * 60 * 60; // 24h in seconds
 
 function getSecret() {
-  const secret = process.env.ADMIN_JWT_SECRET || "fallback-dev-secret-change-me";
+  const secret = process.env.ADMIN_JWT_SECRET;
+  if (!secret) throw new Error("ADMIN_JWT_SECRET is not configured");
   return new TextEncoder().encode(secret);
 }
 
