@@ -39,9 +39,9 @@ export default function ShareCard({
     setSaving(true);
     try {
       const domToImage = (await import("dom-to-image-more")).default;
-      // Use toPng with explicit node cloning to avoid border artifacts
-      const dataUrl = await domToImage.toPng(cardRef.current, {
-        bgcolor: "#12100c",
+      // Use toBlob directly (avoids double-render issue with toPng→fetch)
+      const blob = await domToImage.toBlob(cardRef.current, {
+        bgcolor: "#110e09",
         quality: 1,
         style: {
           borderRadius: "0",
@@ -51,9 +51,7 @@ export default function ShareCard({
         },
       });
 
-      // Convert data URL to blob
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
+      if (!blob) throw new Error("Failed to generate image");
 
       // Try native share with image first (mobile)
       if (navigator.share && navigator.canShare) {
@@ -71,7 +69,9 @@ export default function ShareCard({
       const a = document.createElement("a");
       a.href = url;
       a.download = "star-library-result.png";
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch {
       // ignore
@@ -85,7 +85,7 @@ export default function ShareCard({
       <div
         ref={cardRef}
         className="share-card-bg overflow-hidden relative"
-        style={{ padding: "28px 24px" }}
+        style={{ padding: "28px 24px", borderRadius: "24px", boxShadow: "0 0 60px rgba(201,169,110,0.15), 0 4px 32px rgba(0,0,0,0.3)" }}
       >
         {/* Decorative symbol */}
         <div
@@ -159,13 +159,7 @@ export default function ShareCard({
         </div>
       </div>
 
-      {/* Visual wrapper for display only (shadow/rounded) — NOT part of the capture */}
-      <style jsx>{`
-        div:first-child > div:first-child {
-          border-radius: 24px;
-          box-shadow: 0 0 60px rgba(201,169,110,0.15), 0 4px 32px rgba(0,0,0,0.3);
-        }
-      `}</style>
+      {/* Visual wrapper styles — applied via className, NOT style jsx (avoids dom-to-image capture issues) */}
 
       {/* Save / Share button */}
       <motion.button

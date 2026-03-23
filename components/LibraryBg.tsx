@@ -53,7 +53,7 @@ const SCENES: Record<BgScene, {
 };
 
 export default function LibraryBg({ scene = "main" }: LibraryBgProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 768);
@@ -63,7 +63,10 @@ export default function LibraryBg({ scene = "main" }: LibraryBgProps) {
   }, []);
 
   const config = SCENES[scene];
-  const src = isMobile ? config.mobile : config.desktop;
+  // SSR/初回: 両方のソースをpreloadし、CSS media queryで切替
+  const desktopSrc = config.desktop;
+  const mobileSrc = config.mobile;
+  const src = isMobile === null ? desktopSrc : isMobile ? mobileSrc : desktopSrc;
 
   return (
     <div className="fixed inset-0 z-[1] pointer-events-none" aria-hidden="true">
