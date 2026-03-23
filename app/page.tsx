@@ -284,7 +284,7 @@ export default function HomePage() {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 1.5 }}
                   >
-                    ここには、すべての人の星の記録がある
+                    2人の司書が、あなたの星を6つの占術で読む。
                   </motion.p>
                 </motion.div>
 
@@ -357,7 +357,7 @@ export default function HomePage() {
                     fontFamily: "var(--font-ui), sans-serif",
                   }}
                 >
-                  {doorMode === "keyhole" ? "鍵穴を覗く" : "本を開く"}
+                  図書館に入る
                 </motion.button>
 
                 {/* Hashtag hint */}
