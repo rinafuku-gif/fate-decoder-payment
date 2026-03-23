@@ -350,8 +350,14 @@ export default function HomePage() {
                       setTimeout(() => { go("char_select"); setDoorOpen(false); setBookOpened(false); }, 1800);
                     }
                   }}
-                  className="mx-auto px-10 py-3.5 rounded-full text-sm font-medium text-white border glow-pulse"
-                  style={{ borderColor: "rgba(201,169,110,0.4)", background: "rgba(201,169,110,0.08)" }}
+                  className="mx-auto px-10 py-3.5 rounded text-sm font-medium border transition-all"
+                  style={{
+                    borderColor: "rgba(201,169,110,0.4)",
+                    background: "transparent",
+                    color: "var(--brass-light)",
+                    boxShadow: "0 0 20px rgba(201,169,110,0.08), inset 0 1px 0 rgba(201,169,110,0.05)",
+                    fontFamily: "var(--font-ui), sans-serif",
+                  }}
                 >
                   {doorMode === "keyhole" ? "鍵穴を覗く" : "本を開く"}
                 </motion.button>
@@ -387,10 +393,11 @@ export default function HomePage() {
                     return (
                       <TiltCard
                         key={c}
-                        className="rounded-2xl overflow-hidden relative"
+                        className="rounded-lg overflow-hidden relative wood-grain"
                         style={{
-                          background: "rgba(255,255,255,0.03)",
-                          border: `1px solid ${isUrara ? "rgba(180,150,100,0.2)" : "rgba(201,169,110,0.2)"}`,
+                          background: "rgba(28,23,16,0.85)",
+                          border: `1px solid rgba(201,169,110,0.15)`,
+                          boxShadow: "0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(201,169,110,0.03)",
                         }}
                         onClick={() => { playTap(); setCharacter(c); go("ask_name"); }}
                       >
@@ -399,7 +406,7 @@ export default function HomePage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.3 + i * 0.2, type: "spring", stiffness: 100 }}
                         >
-                          <div className={`aspect-[3/4] overflow-hidden relative ${cfg.floatClass}`}>
+                          <div className="aspect-[3/4] overflow-hidden relative">
                             <Image
                               src={cfg.image}
                               alt={cfg.name}
@@ -438,16 +445,22 @@ export default function HomePage() {
                         type="text" value={name} onChange={(e) => setName(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) { playTap(); go("ask_birthday"); } }}
                         placeholder="ニックネームでOK" autoFocus
-                        className="w-full px-4 py-3.5 rounded-2xl text-sm text-white placeholder-white/20 outline-none transition-all focus:ring-1 focus:ring-[var(--gold)]/30"
-                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(201,169,110,0.2)" }}
+                        className="w-full px-2 py-3.5 text-sm text-white placeholder-white/20 outline-none transition-all"
+                        style={{
+                          background: "rgba(20,16,10,0.6)",
+                          border: "none",
+                          borderBottom: "1px solid rgba(201,169,110,0.2)",
+                          borderRadius: "0",
+                          fontFamily: "var(--font-serif-body), serif",
+                        }}
                       />
                       <motion.button
                         whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => { if (name.trim()) { playTap(); go("ask_birthday"); } }}
                         disabled={!name.trim()}
-                        className="mt-3 w-full py-3 rounded-full text-sm font-medium text-white disabled:opacity-20 transition-all"
-                        style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.6), rgba(201,169,110,0.3))", border: "1px solid rgba(201,169,110,0.3)" }}
+                        className="mt-3 w-full py-3 rounded text-sm font-medium disabled:opacity-20 transition-all"
+                        style={{ background: "transparent", border: "1px solid var(--brass)", color: "var(--brass-light)", fontFamily: "var(--font-ui), sans-serif" }}
                       >
                         次へ
                       </motion.button>
@@ -472,11 +485,11 @@ export default function HomePage() {
                         ].map((sel, idx) => (
                           <select
                             key={idx} value={sel.val} onChange={(e) => sel.set(e.target.value)}
-                            className="px-2 py-3.5 rounded-2xl text-sm text-white text-center outline-none appearance-none"
-                            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(201,169,110,0.2)" }}
+                            className="px-2 py-3.5 text-sm text-white text-center outline-none appearance-none"
+                            style={{ background: "rgba(20,16,10,0.6)", border: "none", borderBottom: "1px solid rgba(201,169,110,0.2)", borderRadius: "0" }}
                           >
                             {sel.opts.map((o) => (
-                              <option key={o.v} value={o.v} className="bg-[#0c0a08] text-white">{o.l}</option>
+                              <option key={o.v} value={o.v} className="bg-[#110e09] text-white">{o.l}</option>
                             ))}
                           </select>
                         ))}

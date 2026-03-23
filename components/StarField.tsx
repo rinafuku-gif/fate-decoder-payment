@@ -38,18 +38,23 @@ export default function StarField() {
     };
 
     const initMotes = () => {
-      const count = Math.floor((canvas.width * canvas.height) / 15000); // fewer than stars
-      motes = Array.from({ length: count }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 2 + 0.8,
-        opacity: Math.random() * 0.3 + 0.05,
-        speedX: (Math.random() - 0.5) * 0.12,
-        speedY: -(Math.random() * 0.08 + 0.01), // gently rise
-        drift: Math.random() * 0.5,
-        driftSpeed: Math.random() * 0.003 + 0.001,
-        driftOffset: Math.random() * Math.PI * 2,
-      }));
+      // Much fewer particles — just a hint of dust in lamplight, not a star field
+      const count = Math.floor((canvas.width * canvas.height) / 60000);
+      motes = Array.from({ length: count }, () => {
+        // Concentrate particles in the upper-right quadrant (near the lamp)
+        const nearLamp = Math.random() < 0.6;
+        return {
+          x: nearLamp ? canvas.width * 0.5 + Math.random() * canvas.width * 0.5 : Math.random() * canvas.width,
+          y: nearLamp ? Math.random() * canvas.height * 0.5 : Math.random() * canvas.height,
+          size: Math.random() * 1.5 + 0.5,
+          opacity: Math.random() * 0.15 + 0.02,
+          speedX: (Math.random() - 0.5) * 0.06,
+          speedY: -(Math.random() * 0.04 + 0.005),
+          drift: Math.random() * 0.3,
+          driftSpeed: Math.random() * 0.002 + 0.0005,
+          driftOffset: Math.random() * Math.PI * 2,
+        };
+      });
     };
 
     const draw = (time: number) => {
@@ -105,7 +110,7 @@ export default function StarField() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
-      style={{ opacity: 0.5 }}
+      style={{ opacity: 0.3 }}
     />
   );
 }
