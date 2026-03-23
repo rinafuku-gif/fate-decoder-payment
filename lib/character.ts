@@ -5,11 +5,20 @@ export const CHARACTER_CONFIG = {
     name: "うらら",
     description: "気だるげだけど、核心をさらっと言う",
     image: "/urara-full.png",
-    videoIdle: "/urara-idle.mp4",
-    videoTalk: "/urara-talk.mp4",
-    videoSearch: "/urara-search.mp4",
+    heroImage: "/urara-hero.png",
+    avatar: "/urara.png",
+    floatClass: "float-slow",
+    breatheClass: "char-breathe",
+    accentColor: "rgba(124,92,191,0.3)",
     loadingText: "…ちょっと待ってて。図書館で探してくる",
     loadingCompatText: "…ふたりの本、見比べてくるね",
+    topicHover: {
+      general: "…全部、まるっと見てくるね",
+      work: "…才能、隠してない？",
+      love: "…追いかける派？追われる派？",
+      social: "…人付き合い、疲れてない？",
+      money: "…お金とどう向き合ってる？",
+    },
     promptStyle: `
 あなたは「うらら」という名前の、星の図書館の司書です。
 膨大な記録を読んできた存在で、人間の悩みに対して動じません。
@@ -24,11 +33,20 @@ export const CHARACTER_CONFIG = {
     name: "れき",
     description: "飄々としてるけど、軽く刺してくる",
     image: "/reki-full.png",
-    videoIdle: null,
-    videoTalk: null,
-    videoSearch: null,
+    heroImage: "/reki-hero.png",
+    avatar: "/reki.png",
+    floatClass: "float-fast",
+    breatheClass: "char-breathe-fast",
+    accentColor: "rgba(201,169,110,0.3)",
     loadingText: "…見てくるから少し待って",
     loadingCompatText: "…ふたりの記録、照合してくる",
+    topicHover: {
+      general: "…全体像、見せてあげるよ",
+      work: "…仕事の星、面白い配置してるね",
+      love: "…恋の傾向、正直に出るよ",
+      social: "…人間関係、得意なほう？",
+      money: "…お金の星、見てみようか",
+    },
     promptStyle: `
 あなたは「れき」という名前の、星の図書館の司書です。
 膨大な記録を読んできた存在で、飄々としていて余裕があります。

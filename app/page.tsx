@@ -2,13 +2,16 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Aurora from "@/components/Aurora";
 import StarField from "@/components/StarField";
 import GrainOverlay from "@/components/GrainOverlay";
 import TouchParticles from "@/components/TouchParticles";
 import ChatBubble from "@/components/ChatBubble";
 import FadeIn from "@/components/FadeIn";
+import TiltCard from "@/components/TiltCard";
+import ShareCard from "@/components/ShareCard";
+import OshiCard from "@/components/OshiCard";
 import SoundToggle, { playTap, playTransition, playReveal } from "@/components/Sound";
 import { CHARACTER_CONFIG, type Character } from "@/lib/character";
 import { calculateAll } from "@/lib/fortune-calc";
@@ -56,34 +59,26 @@ export default function HomePage() {
   const [result, setResult] = useState<any>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [loadingStage, setLoadingStage] = useState(0);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const [introReady, setIntroReady] = useState(false);
+  const [hoveredTopic, setHoveredTopic] = useState<TopicId | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const r = params.get("ref");
     if (r) { setRef(r); sessionStorage.setItem("fd_ref", r); }
     else { const s = sessionStorage.getItem("fd_ref"); if (s) setRef(s); }
+    // Intro animation sequence
+    setTimeout(() => setIntroReady(true), 500);
   }, []);
-
-  useEffect(() => {
-    const handleMouse = (e: MouseEvent) => {
-      mouseX.set((e.clientX / window.innerWidth - 0.5) * 20);
-      mouseY.set((e.clientY / window.innerHeight - 0.5) * 20);
-    };
-    window.addEventListener("mousemove", handleMouse);
-    return () => window.removeEventListener("mousemove", handleMouse);
-  }, [mouseX, mouseY]);
 
   const charConfig = character ? CHARACTER_CONFIG[character] : null;
   const onBubbleDone = useCallback(() => setInputReady(true), []);
   const go = useCallback((s: Step) => { setInputReady(false); setStep(s); playTransition(); }, []);
 
-  // Use ref to ensure topic is always current when runDiagnosis fires
   const topicRef = useRef(topic);
   topicRef.current = topic;
 
-  // Diagnosis — topic-aware (reads from ref to avoid stale closure)
+  /* ━━━ Diagnosis ━━━ */
   const runDiagnosis = useCallback(async () => {
     if (!character) return;
     const currentTopic = topicRef.current;
@@ -91,7 +86,8 @@ export default function HomePage() {
       const data = calculateAll(parseInt(year), parseInt(month), parseInt(day));
       const config = CHARACTER_CONFIG[character];
       const topicFocus = TOPIC_PROMPT_FOCUS[currentTopic];
-      const prompt = `${config.promptStyle}\n\n以下の人物の6占術データから、あなた（${config.name}）の口調で【${TOPICS.find(t => t.id === currentTopic)?.label}】の診断結果を書いてください。\n\n【テーマ】${topicFocus}\n\n【対象者】${name} (${year}年${month}月${day}日生まれ)\n【占術データ】マヤ暦:KIN${data.maya.kin}/紋章:${data.maya.glyph}/音:${data.maya.tone}/WS:${data.maya.ws} 算命学:[${data.bazi.weapon}] 四柱推命:年柱[${data.sanmeigaku.year}]/月柱[${data.sanmeigaku.month}]/日柱[${data.sanmeigaku.day}]/日干[${data.bazi.stem}] 数秘:LP${data.numerology.lp} 西洋:${data.western.sign} 宿曜:${data.sukuyo}\n\n【出力ルール】\n1. section1: 200-300文字。占術データを2つ以上引用\n2. section2: 200-300文字\n3. section3: 200-300文字\n4. oneWord: この人を一言で表す言葉。8-15文字\n5. action: 今日からできるアクション。20-40文字\n6. luckyItem: 具体的に\n\n**必ず純粋なJSON**\n{"oneWord":"","section1":"","section2":"","section3":"","action":"","luckyItem":""}`;
+      const topicLabel = TOPICS.find(t => t.id === currentTopic)?.label || "";
+      const prompt = `${config.promptStyle}\n\n以下の人物の6占術データから、あなた（${config.name}）の口調で【${topicLabel}】の診断結果を書いてください。\n\n【テーマ】${topicFocus}\n\n【対象者】${name} (${year}年${month}月${day}日生まれ)\n【占術データ】マヤ暦:KIN${data.maya.kin}/紋章:${data.maya.glyph}/音:${data.maya.tone}/WS:${data.maya.ws} 算命学:[${data.bazi.weapon}] 四柱推命:年柱[${data.sanmeigaku.year}]/月柱[${data.sanmeigaku.month}]/日柱[${data.sanmeigaku.day}]/日干[${data.bazi.stem}] 数秘:LP${data.numerology.lp} 西洋:${data.western.sign} 宿曜:${data.sukuyo}\n\n【出力ルール】\n1. section1: 200-300文字。占術データを2つ以上引用\n2. section2: 200-300文字\n3. section3: 200-300文字\n4. oneWord: この人を一言で表す言葉。8-15文字\n5. bookTitle: ${name}の${topicLabel}についての本のタイトル。「〜の記録」「〜の地図」「〜の季節」形式で14-20文字以内。例「追いかけてしまう人の、恋の地図」\n6. action: 今日からできるアクション。20-40文字\n7. luckyItem: 具体的に\n\n**必ず純粋なJSON**\n{"oneWord":"","bookTitle":"","section1":"","section2":"","section3":"","action":"","luckyItem":""}`;
       let parsed: any = {};
       try {
         const text = await generateFortune(prompt);
@@ -100,7 +96,7 @@ export default function HomePage() {
         const l = c.lastIndexOf("}"); if (l !== -1) c = c.substring(0, l + 1);
         parsed = JSON.parse(c);
       } catch {
-        parsed = { oneWord: "…面白い星の配置", section1: `…${data.maya.glyph}の紋章。芯が強い。`, section2: `${data.western.sign}のあなたは深い絆を求める。`, section3: `「${data.bazi.weapon}」を持ってる。`, action: "…朝5分、深呼吸してみて", luckyItem: "温かい飲み物" };
+        parsed = { oneWord: "…面白い星の配置", bookTitle: "星が語る、あなたの記録", section1: `…${data.maya.glyph}の紋章。芯が強い。`, section2: `${data.western.sign}のあなたは深い絆を求める。`, section3: `「${data.bazi.weapon}」を持ってる。`, action: "…朝5分、深呼吸してみて", luckyItem: "温かい飲み物" };
       }
       fetch("/api/log-diagnosis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ref: ref || "direct", mode: "short", topic: currentTopic, name, birthDate: `${year}-${String(parseInt(month)).padStart(2, "0")}-${String(parseInt(day)).padStart(2, "0")}` }) }).catch(() => {});
       setResult({ ...parsed, data, name, topic: currentTopic });
@@ -120,13 +116,12 @@ export default function HomePage() {
 
   const handleShare = async () => {
     const topicLabel = TOPICS.find(t => t.id === result?.topic)?.label || "総合運";
-    const t = `${result?.name}の${topicLabel}「${result?.oneWord}」\n\n星の図書館 で無料診断 →`;
+    const t = `「${result?.bookTitle || result?.oneWord}」\n\n${result?.name}の星の記録、読んでもらった\n▶ 星の図書館`;
     const url = window.location.origin + (ref ? `?ref=${ref}` : "");
     if (navigator.share) { try { await navigator.share({ title: "星の図書館", text: t, url }); } catch {} }
     else { try { await navigator.clipboard.writeText(`${t}\n${url}`); setToast("コピーしました"); setTimeout(() => setToast(null), 2000); } catch {} }
   };
 
-  // Try another topic
   const handleRetryTopic = (newTopic: TopicId) => {
     setTopic(newTopic);
     setResult(null);
@@ -137,7 +132,7 @@ export default function HomePage() {
   const sections = result?.topic ? TOPIC_SECTIONS[result.topic as TopicId] : TOPIC_SECTIONS.general;
 
   return (
-    <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
+    <main className="min-h-screen relative overflow-hidden" style={{ background: "var(--background)" }}>
       <Aurora />
       <StarField />
       <GrainOverlay />
@@ -148,12 +143,22 @@ export default function HomePage() {
         <div className="flex-1 flex flex-col justify-center py-8">
           <AnimatePresence mode="wait">
 
-            {/* ━━━ INTRO ━━━ */}
+            {/* ━━━ INTRO — 没入型オープニング ━━━ */}
             {step === "intro" && (
               <motion.div key="intro" exit={{ opacity: 0, scale: 0.95 }} className="text-center">
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.5 }} className="mb-6">
+                {/* Gold horizontal line */}
+                <motion.div
+                  className="mx-auto mb-8 h-px"
+                  style={{ background: "linear-gradient(90deg, transparent, var(--gold), transparent)" }}
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 120, opacity: 0.4 }}
+                  transition={{ duration: 1.2, delay: 0.3 }}
+                />
+
+                {/* Title — large serif */}
+                <motion.div className="mb-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.5, delay: 0.5 }}>
                   <motion.h1
-                    className="text-5xl sm:text-7xl font-bold tracking-tight mb-3"
+                    className="text-5xl sm:text-7xl font-bold tracking-tight mb-4"
                     style={{
                       fontFamily: "var(--font-serif), serif",
                       background: "linear-gradient(135deg, #fff 0%, var(--gold) 50%, #fff 100%)",
@@ -162,73 +167,127 @@ export default function HomePage() {
                       WebkitTextFillColor: "transparent",
                       animation: "shimmer 3s ease-in-out infinite",
                     }}
-                    initial={{ y: 30, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 1, delay: 0.3 }}
+                    initial={{ y: 30, opacity: 0, filter: "blur(4px)" }}
+                    animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+                    transition={{ duration: 1.2, delay: 0.8 }}
                   >
                     星の図書館
                   </motion.h1>
-                  <motion.p className="text-white/40 text-sm tracking-widest" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.0 }}>
+
+                  {/* Subtitle */}
+                  <motion.p
+                    className="text-white/40 text-sm tracking-widest"
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 1.5 }}
+                  >
                     うららとれきが、あなたの星を読み解く
                   </motion.p>
-                  <motion.p className="text-xs mt-2 tracking-[0.3em]" style={{ color: "var(--gold)" }} initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} transition={{ delay: 1.5 }}>
-                    6 DIVINATIONS × AI × 5 THEMES
-                  </motion.p>
                 </motion.div>
-                <motion.button
+
+                {/* Character silhouettes peek */}
+                <motion.div
+                  className="flex justify-center gap-4 mb-8"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 2.0 }}
-                  whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(201,169,110,0.3)" }}
+                  transition={{ delay: 2.0, duration: 0.8 }}
+                >
+                  {(["urara", "reki"] as const).map((c) => {
+                    const cfg = CHARACTER_CONFIG[c];
+                    return (
+                      <div
+                        key={c}
+                        className={`w-14 h-14 rounded-full overflow-hidden ${cfg.breatheClass}`}
+                        style={{
+                          border: `1.5px solid ${c === "urara" ? "rgba(124,92,191,0.3)" : "rgba(201,169,110,0.3)"}`,
+                          boxShadow: `0 0 20px ${cfg.accentColor}`,
+                        }}
+                      >
+                        <Image src={cfg.avatar} alt={cfg.name} width={112} height={112} className="object-cover w-full h-full" />
+                      </div>
+                    );
+                  })}
+                </motion.div>
+
+                {/* CTA */}
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: introReady ? 1 : 0, y: introReady ? 0 : 20 }}
+                  transition={{ delay: 2.5, duration: 0.5 }}
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(201,169,110,0.25)" }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => { playTap(); go("char_select"); }}
-                  className="mx-auto px-8 py-3 rounded-full text-sm font-medium text-white border"
-                  style={{ borderColor: "rgba(201,169,110,0.4)", background: "rgba(201,169,110,0.1)" }}
+                  className="mx-auto px-10 py-3.5 rounded-full text-sm font-medium text-white border glow-pulse"
+                  style={{ borderColor: "rgba(201,169,110,0.4)", background: "rgba(201,169,110,0.08)" }}
                 >
                   図書館に入る
                 </motion.button>
+
+                {/* Hashtag hint */}
+                <motion.div
+                  className="mt-6 flex justify-center gap-3"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.15 }}
+                  transition={{ delay: 3.5 }}
+                >
+                  <span className="text-[10px] text-white tracking-wide">#うらら担</span>
+                  <span className="text-[10px] text-white tracking-wide">#れき担</span>
+                </motion.div>
               </motion.div>
             )}
 
-            {/* ━━━ CHAR SELECT ━━━ */}
+            {/* ━━━ CHAR SELECT — キャラ主役化 ━━━ */}
             {step === "char_select" && (
               <motion.div key="cs" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: -30 }}>
-                <motion.p className="text-center text-white/40 text-sm mb-8 tracking-wide" initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>
+                <motion.p
+                  className="text-center text-white/40 text-sm mb-8 tracking-wide"
+                  initial={{ y: -10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
                   …どっちに読んでもらう？
                 </motion.p>
                 <div className="grid grid-cols-2 gap-5">
                   {(["urara", "reki"] as Character[]).map((c, i) => {
                     const cfg = CHARACTER_CONFIG[c];
+                    const isUrara = c === "urara";
                     return (
-                      <motion.button
+                      <TiltCard
                         key={c}
-                        initial={{ opacity: 0, y: 30, rotateY: -10 }}
-                        animate={{ opacity: 1, y: 0, rotateY: 0 }}
-                        transition={{ delay: 0.3 + i * 0.2, type: "spring", stiffness: 100 }}
-                        whileHover={{ y: -8, boxShadow: "0 20px 40px rgba(201,169,110,0.15)" }}
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => { playTap(); setCharacter(c); go("ask_name"); }}
-                        className="rounded-2xl overflow-hidden group"
+                        className="rounded-2xl overflow-hidden relative"
                         style={{
                           background: "rgba(255,255,255,0.03)",
-                          border: "1px solid rgba(201,169,110,0.15)",
-                          backdropFilter: "blur(12px)",
-                          WebkitBackdropFilter: "blur(12px)",
+                          border: `1px solid ${isUrara ? "rgba(124,92,191,0.2)" : "rgba(201,169,110,0.2)"}`,
                         }}
+                        onClick={() => { playTap(); setCharacter(c); go("ask_name"); }}
                       >
-                        <div className="aspect-[3/4] overflow-hidden relative">
-                          {cfg.videoIdle ? (
-                            <video src={cfg.videoIdle} autoPlay loop muted playsInline className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                          ) : (
-                            <Image src={cfg.image} alt={cfg.name} width={382} height={510} className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                            <p className="text-base font-bold text-white">{cfg.name}</p>
-                            <p className="text-[11px] text-white/50">{cfg.description}</p>
+                        <motion.div
+                          initial={{ opacity: 0, y: 30 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 + i * 0.2, type: "spring", stiffness: 100 }}
+                        >
+                          <div className={`aspect-[3/4] overflow-hidden relative ${cfg.floatClass}`}>
+                            <Image
+                              src={cfg.image}
+                              alt={cfg.name}
+                              width={382}
+                              height={510}
+                              className="object-cover w-full h-full"
+                              priority
+                            />
+                            {/* Bottom gradient */}
+                            <div
+                              className="absolute inset-x-0 bottom-0 h-1/3"
+                              style={{ background: `linear-gradient(to top, ${isUrara ? "rgba(15,10,30,0.9)" : "rgba(15,18,30,0.9)"}, transparent)` }}
+                            />
+                            {/* Name overlay */}
+                            <div className="absolute bottom-0 left-0 right-0 p-4">
+                              <p className="text-base font-bold text-white">{cfg.name}</p>
+                              <p className="text-[11px] text-white/50 mt-0.5">{cfg.description}</p>
+                            </div>
                           </div>
-                        </div>
-                      </motion.button>
+                        </motion.div>
+                      </TiltCard>
                     );
                   })}
                 </div>
@@ -236,9 +295,9 @@ export default function HomePage() {
             )}
 
             {/* ━━━ ASK NAME ━━━ */}
-            {step === "ask_name" && charConfig && (
+            {step === "ask_name" && charConfig && character && (
               <motion.div key="name" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
-                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text="…名前、教えてくれる？" onComplete={onBubbleDone} />
+                <ChatBubble characterImage={charConfig.avatar} characterName={charConfig.name} breatheClass={charConfig.breatheClass} text="…名前、教えてくれる？" onComplete={onBubbleDone} speed={character === "urara" ? 45 : 35} />
                 <AnimatePresence>
                   {inputReady && (
                     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mt-4 ml-13">
@@ -246,7 +305,7 @@ export default function HomePage() {
                         type="text" value={name} onChange={(e) => setName(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) { playTap(); go("ask_birthday"); } }}
                         placeholder="ニックネームでOK" autoFocus
-                        className="w-full px-4 py-3.5 rounded-2xl text-sm text-white placeholder-white/20 outline-none transition-all focus:ring-1"
+                        className="w-full px-4 py-3.5 rounded-2xl text-sm text-white placeholder-white/20 outline-none transition-all focus:ring-1 focus:ring-[var(--gold)]/30"
                         style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(201,169,110,0.2)" }}
                       />
                       <motion.button
@@ -266,9 +325,9 @@ export default function HomePage() {
             )}
 
             {/* ━━━ ASK BIRTHDAY ━━━ */}
-            {step === "ask_birthday" && charConfig && (
+            {step === "ask_birthday" && charConfig && character && (
               <motion.div key="bday" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
-                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text={`…ありがとう、${name}。生年月日を教えてくれる？`} onComplete={onBubbleDone} />
+                <ChatBubble characterImage={charConfig.avatar} characterName={charConfig.name} breatheClass={charConfig.breatheClass} text={`…ありがとう、${name}。生年月日を教えてくれる？`} onComplete={onBubbleDone} speed={character === "urara" ? 45 : 35} />
                 <AnimatePresence>
                   {inputReady && (
                     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mt-4 ml-13">
@@ -284,7 +343,7 @@ export default function HomePage() {
                             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(201,169,110,0.2)" }}
                           >
                             {sel.opts.map((o) => (
-                              <option key={o.v} value={o.v} className="bg-[#0a0e1a] text-white">{o.l}</option>
+                              <option key={o.v} value={o.v} className="bg-[#070a14] text-white">{o.l}</option>
                             ))}
                           </select>
                         ))}
@@ -304,10 +363,17 @@ export default function HomePage() {
               </motion.div>
             )}
 
-            {/* ━━━ ASK TOPIC — テーマ選択 ━━━ */}
-            {step === "ask_topic" && charConfig && (
+            {/* ━━━ ASK TOPIC — ホバーでキャラコメント ━━━ */}
+            {step === "ask_topic" && charConfig && character && (
               <motion.div key="topic" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
-                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text={`…${name}、何について知りたい？`} onComplete={onBubbleDone} />
+                <ChatBubble
+                  characterImage={charConfig.avatar}
+                  characterName={charConfig.name}
+                  breatheClass={charConfig.breatheClass}
+                  text={hoveredTopic ? charConfig.topicHover[hoveredTopic] : `…${name}、何について知りたい？`}
+                  onComplete={hoveredTopic ? undefined : onBubbleDone}
+                  speed={character === "urara" ? 45 : 35}
+                />
                 <AnimatePresence>
                   {inputReady && (
                     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mt-4 ml-13 space-y-2">
@@ -320,11 +386,9 @@ export default function HomePage() {
                           whileHover={{ scale: 1.02, boxShadow: "0 0 25px rgba(201,169,110,0.15)" }}
                           whileTap={{ scale: 0.97 }}
                           onClick={() => { playTap(); setTopic(t.id); setStep("loading"); }}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all group"
-                          style={{
-                            background: "rgba(255,255,255,0.03)",
-                            border: "1px solid rgba(201,169,110,0.15)",
-                          }}
+                          onMouseEnter={() => setHoveredTopic(t.id)}
+                          onMouseLeave={() => setHoveredTopic(null)}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all group glass-card"
                         >
                           <span className="text-lg opacity-60 group-hover:opacity-100 transition-opacity" style={{ color: "var(--gold)" }}>{t.icon}</span>
                           <div className="flex-1 min-w-0">
@@ -340,31 +404,41 @@ export default function HomePage() {
               </motion.div>
             )}
 
-            {/* ━━━ LOADING ━━━ */}
+            {/* ━━━ LOADING — 本を探しに行く ━━━ */}
             {step === "loading" && charConfig && (
               <motion.div key="load" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="text-center">
-                {charConfig.videoSearch ? (
-                  <div className="rounded-2xl overflow-hidden mb-8 mx-auto max-w-sm" style={{ border: "1px solid rgba(201,169,110,0.2)", boxShadow: "0 0 60px rgba(201,169,110,0.1)" }}>
-                    <video src={charConfig.videoSearch} autoPlay loop muted playsInline className="w-full h-auto" />
-                  </div>
-                ) : (
-                  <motion.div animate={{ y: [0, -12, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
-                    <div className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-8" style={{ border: "2px solid rgba(201,169,110,0.5)", boxShadow: "0 0 60px rgba(201,169,110,0.2)" }}>
+                {/* Character searching animation */}
+                <div className="relative mb-8">
+                  {/* Bookshelf silhouette */}
+                  <div className="absolute inset-x-0 bottom-0 h-1 rounded-full mx-8" style={{ background: "linear-gradient(90deg, transparent, rgba(201,169,110,0.1), transparent)" }} />
+
+                  {/* Character with search animation */}
+                  <div className="char-search mx-auto">
+                    <div
+                      className="w-28 h-28 rounded-full overflow-hidden mx-auto glow-pulse"
+                      style={{
+                        border: `2px solid ${character === "urara" ? "rgba(124,92,191,0.5)" : "rgba(201,169,110,0.5)"}`,
+                      }}
+                    >
                       <Image src={charConfig.image} alt={charConfig.name} width={224} height={224} className="object-cover w-full h-full" />
                     </div>
-                  </motion.div>
-                )}
+                  </div>
+                </div>
+
+                {/* Loading text stages */}
                 <AnimatePresence mode="wait">
-                  <motion.p key={loadingStage} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="text-sm text-white/60">
+                  <motion.p key={loadingStage} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="text-sm text-white/60 text-serif">
                     {[charConfig.loadingText, "…星の記録を照合してる", "…もう少しだけ待ってて"][loadingStage]}
                   </motion.p>
                 </AnimatePresence>
+
+                {/* Ripple rings */}
                 <div className="relative w-16 h-16 mx-auto mt-8">
                   {[0, 1, 2].map((i) => (
                     <motion.div
                       key={i}
                       className="absolute inset-0 rounded-full border"
-                      style={{ borderColor: "rgba(201,169,110,0.2)" }}
+                      style={{ borderColor: character === "urara" ? "rgba(124,92,191,0.2)" : "rgba(201,169,110,0.2)" }}
                       animate={{ scale: [1, 1.5 + i * 0.3], opacity: [0.4, 0] }}
                       transition={{ duration: 2, repeat: Infinity, delay: i * 0.5, ease: "easeOut" }}
                     />
@@ -373,36 +447,32 @@ export default function HomePage() {
               </motion.div>
             )}
 
-            {/* ━━━ RESULT ━━━ */}
-            {step === "result" && result && charConfig && (
+            {/* ━━━ RESULT — 星の本を読む ━━━ */}
+            {step === "result" && result && charConfig && character && (
               <motion.div key="result" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-8">
-                <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text={`…${result.name}の${TOPICS.find(t => t.id === result.topic)?.label || ""}の本、見つけてきたよ。`} speed={35} />
+                <ChatBubble
+                  characterImage={charConfig.avatar}
+                  characterName={charConfig.name}
+                  breatheClass={charConfig.breatheClass}
+                  text={`…${result.name}の${TOPICS.find(t => t.id === result.topic)?.label || ""}の本、見つけてきたよ。`}
+                  speed={35}
+                />
 
-                {/* oneWord — hero card */}
+                {/* ━━━ SHARE CARD (hero) ━━━ */}
                 <FadeIn delay={1.5}>
-                  <motion.div
-                    className="text-center mb-8 p-6 rounded-3xl relative overflow-hidden"
-                    style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)" }}
-                    whileHover={{ boxShadow: "0 0 40px rgba(201,169,110,0.15)" }}
-                  >
-                    <p className="text-[11px] text-white/30 mb-2 tracking-widest uppercase">
-                      {TOPICS.find(t => t.id === result.topic)?.label || "Your Keyword"}
-                    </p>
-                    <motion.p
-                      className="text-2xl sm:text-3xl font-bold"
-                      style={{
-                        fontFamily: "var(--font-serif), serif",
-                        background: "linear-gradient(135deg, #fff, var(--gold))",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 2.0, type: "spring", stiffness: 100 }}
-                    >
-                      {result.oneWord}
-                    </motion.p>
-                  </motion.div>
+                  <ShareCard
+                    characterName={charConfig.name}
+                    characterAvatar={charConfig.avatar}
+                    characterId={character}
+                    userName={result.name}
+                    topicLabel={TOPICS.find(t => t.id === result.topic)?.label || "総合運"}
+                    oneWord={result.oneWord}
+                    bookTitle={result.bookTitle}
+                    westernSign={result.data.western.sign}
+                    kin={result.data.maya.kin}
+                    glyph={result.data.maya.glyph}
+                    siteUrl={typeof window !== "undefined" ? window.location.origin : ""}
+                  />
                 </FadeIn>
 
                 {/* Bento grid — data */}
@@ -420,8 +490,7 @@ export default function HomePage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 2.2 + i * 0.08 }}
-                        className={`text-center p-3 rounded-2xl ${d.span}`}
-                        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,169,110,0.1)" }}
+                        className={`text-center p-3 rounded-2xl glass-card ${d.span}`}
                       >
                         <p className="text-[10px] text-white/25 mb-0.5">{d.label}</p>
                         <p className="text-sm font-medium text-white/80">{d.value}</p>
@@ -430,7 +499,7 @@ export default function HomePage() {
                   </div>
                 </FadeIn>
 
-                {/* Readings — topic-specific sections */}
+                {/* Readings — serif body text */}
                 <FadeIn delay={2.5}>
                   <div className="space-y-4 mb-6">
                     {sections.map((s, i) => (
@@ -440,10 +509,10 @@ export default function HomePage() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 2.7 + i * 0.15 }}
                         className="border-l-2 pl-4 py-2"
-                        style={{ borderLeftColor: "rgba(201,169,110,0.4)" }}
+                        style={{ borderLeftColor: character === "urara" ? "rgba(124,92,191,0.4)" : "rgba(201,169,110,0.4)" }}
                       >
                         <h3 className="text-xs font-bold text-white/50 mb-1 tracking-wide">{s.title}</h3>
-                        <p className="text-sm text-white/75 leading-relaxed">{result[`section${i + 1}`]}</p>
+                        <p className="text-sm text-white/75 leading-relaxed text-serif">{result[`section${i + 1}`]}</p>
                       </motion.div>
                     ))}
                   </div>
@@ -451,12 +520,12 @@ export default function HomePage() {
 
                 {/* Action & Lucky */}
                 <FadeIn delay={3.0}>
-                  <div className="grid grid-cols-2 gap-3 mb-8">
+                  <div className="grid grid-cols-2 gap-3 mb-6">
                     {[
                       { label: "今日のアクション", value: result.action },
                       { label: "ラッキーアイテム", value: result.luckyItem },
                     ].map((item, i) => (
-                      <div key={i} className="p-3 rounded-2xl text-center" style={{ background: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.1)" }}>
+                      <div key={i} className="p-3 rounded-2xl text-center glass-card">
                         <p className="text-[10px] text-white/25 mb-1">{item.label}</p>
                         <p className="text-xs text-white/70">{item.value}</p>
                       </div>
@@ -464,11 +533,21 @@ export default function HomePage() {
                   </div>
                 </FadeIn>
 
-                {/* ━━━ ADDICTIVE: Try another topic ━━━ */}
+                {/* Oshi card — 推しバッジ */}
+                <FadeIn delay={3.2}>
+                  <OshiCard characterName={charConfig.name} characterAvatar={charConfig.avatar} characterId={character} />
+                </FadeIn>
+
+                {/* Try another topic */}
                 <FadeIn delay={3.3}>
                   <div className="mb-6">
-                    <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk}
-                      text={`…${TOPICS.find(t => t.id === result.topic)?.label}はこんな感じ。他のテーマも読んでみる？`} speed={28} />
+                    <ChatBubble
+                      characterImage={charConfig.avatar}
+                      characterName={charConfig.name}
+                      breatheClass={charConfig.breatheClass}
+                      text={`…${TOPICS.find(t => t.id === result.topic)?.label}はこんな感じ。他のテーマも読んでみる？`}
+                      speed={28}
+                    />
                     <div className="ml-13 mt-2 flex flex-wrap gap-2">
                       {TOPICS.filter(t => t.id !== result.topic).map((t, i) => (
                         <motion.button
@@ -479,8 +558,7 @@ export default function HomePage() {
                           whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleRetryTopic(t.id)}
-                          className="px-3.5 py-2 rounded-full text-xs font-medium text-white/80 transition-all"
-                          style={{ background: "rgba(201,169,110,0.12)", border: "1px solid rgba(201,169,110,0.25)" }}
+                          className="px-3.5 py-2 rounded-full text-xs font-medium text-white/80 transition-all glass-card"
                         >
                           <span className="mr-1 opacity-70">{t.icon}</span> {t.label}
                         </motion.button>
@@ -492,7 +570,13 @@ export default function HomePage() {
 
                 {/* Upsell */}
                 <FadeIn delay={3.8}>
-                  <ChatBubble characterImage={charConfig.image} characterName={charConfig.name} characterVideo={charConfig.videoTalk} text="…もっと深く知りたい？6000文字のフルレポート、書いてこようか？ ¥200だけど。" speed={28} />
+                  <ChatBubble
+                    characterImage={charConfig.avatar}
+                    characterName={charConfig.name}
+                    breatheClass={charConfig.breatheClass}
+                    text="…もっと深く知りたい？6000文字のフルレポート、書いてこようか？ ¥200だけど。"
+                    speed={28}
+                  />
                   <div className="flex gap-2 ml-13 mt-3">
                     <motion.button
                       whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}
@@ -511,10 +595,10 @@ export default function HomePage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={handleShare}
-                      className="flex-1 py-3 rounded-full text-sm text-white/50 border"
-                      style={{ borderColor: "rgba(255,255,255,0.1)" }}
+                      className="flex-1 py-3 rounded-full text-sm text-white/60 border"
+                      style={{ borderColor: "rgba(255,255,255,0.15)" }}
                     >
-                      結果を共有
+                      テキストで共有
                     </motion.button>
                   </div>
                   <button
@@ -531,7 +615,7 @@ export default function HomePage() {
 
         {/* Footer */}
         {["intro", "result"].includes(step) && (
-          <FadeIn delay={step === "intro" ? 2.5 : 4.5}>
+          <FadeIn delay={step === "intro" ? 3.0 : 4.5}>
             <footer className="text-center text-[11px] text-white/15 pb-6 space-y-1">
               <p>&copy; 2026 星の図書館 · Produced by SATOYAMA AI BASE</p>
               <p>
@@ -553,14 +637,6 @@ export default function HomePage() {
           )}
         </AnimatePresence>
       </div>
-
-      <style jsx global>{`
-        @keyframes shimmer {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-      `}</style>
     </main>
   );
 }

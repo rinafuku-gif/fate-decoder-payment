@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.2",
+    "dom-to-image-more": "^3.7.2",
     "drizzle-orm": "^0.45.1",
     "framer-motion": "^12.38.0",
     "jose": "^6.2.2",

@@ -8,12 +8,13 @@ interface ChatBubbleProps {
   characterImage: string;
   characterName: string;
   characterVideo?: string | null;
+  breatheClass?: string;
   text: string;
   onComplete?: () => void;
   speed?: number;
 }
 
-export default function ChatBubble({ characterImage, characterName, characterVideo, text, onComplete, speed = 40 }: ChatBubbleProps) {
+export default function ChatBubble({ characterImage, characterName, breatheClass = "char-breathe", text, onComplete, speed = 40 }: ChatBubbleProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -22,17 +23,13 @@ export default function ChatBubble({ characterImage, characterName, characterVid
       className="flex items-start gap-3 mb-4"
     >
       <div className="shrink-0">
-        <div className="w-10 h-10 rounded-full overflow-hidden" style={{ border: "1.5px solid rgba(201,169,110,0.5)", boxShadow: "0 0 12px rgba(201,169,110,0.15)" }}>
-          {characterVideo ? (
-            <video src={characterVideo} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-          ) : (
-            <motion.div animate={{ y: [0, -2, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
-              <Image src={characterImage} alt={characterName} width={80} height={80} className="object-cover w-full h-full" />
-            </motion.div>
-          )}
+        <div
+          className={`w-10 h-10 rounded-full overflow-hidden ${breatheClass}`}
+          style={{ border: "1.5px solid rgba(201,169,110,0.5)", boxShadow: "0 0 12px rgba(201,169,110,0.15)" }}
+        >
+          <Image src={characterImage} alt={characterName} width={80} height={80} className="object-cover w-full h-full" />
         </div>
       </div>
-      {/* Dark semi-transparent bubble — NO backdrop-blur (verified: readability risk with moving Aurora) */}
       <div
         className="rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]"
         style={{

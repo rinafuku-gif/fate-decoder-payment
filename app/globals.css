@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8f6f1;
-  --foreground: #2c2c2c;
+  --background: #070a14;
+  --foreground: #e8e4dc;
   --navy: #0a0e1a;
   --navy-light: #2d3a5c;
   --gold: #c9a96e;
   --gold-light: #e8d5a8;
+  --violet: #7c5cbf;
+  --violet-glow: rgba(124,92,191,0.15);
   --cream: #f5f0e8;
   --warm-white: #faf8f4;
 }
@@ -23,8 +25,139 @@ body {
   font-family: var(--font-sans), "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
 }
 
+/* ━━━ Character Animations ━━━ */
+
+@keyframes char-breathe {
+  0%, 100% { transform: scale(1) translateY(0px); }
+  50%       { transform: scale(1.015) translateY(-1.5px); }
+}
+
+@keyframes char-breathe-fast {
+  0%, 100% { transform: scale(1) translateY(0px); }
+  50%       { transform: scale(1.012) translateY(-1px); }
+}
+
+@keyframes char-search {
+  0%   { transform: translateX(0px); opacity: 1; }
+  25%  { transform: translateX(20px); opacity: 0.85; }
+  50%  { transform: translateX(0px); opacity: 1; }
+  75%  { transform: translateX(-15px); opacity: 0.85; }
+  100% { transform: translateX(0px); opacity: 1; }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
+}
+
+@keyframes float-fast {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(201,169,110,0.1); }
+  50%      { box-shadow: 0 0 40px rgba(201,169,110,0.25); }
+}
+
+@keyframes title-reveal {
+  0% { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes line-draw {
+  0% { width: 0; opacity: 0; }
+  100% { width: 120px; opacity: 0.3; }
+}
+
+@keyframes bookshelf-move {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ━━━ Utility Classes ━━━ */
+
+.char-breathe {
+  animation: char-breathe 4s ease-in-out infinite;
+}
+
+.char-breathe-fast {
+  animation: char-breathe-fast 3s ease-in-out infinite;
+}
+
+.char-search {
+  animation: char-search 5s ease-in-out infinite;
+}
+
+.float-slow {
+  animation: float-slow 4s ease-in-out infinite;
+}
+
+.float-fast {
+  animation: float-fast 3.2s ease-in-out infinite;
+}
+
+.glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* ━━━ Glass card ━━━ */
+
+.glass-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(201,169,110,0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-card-violet {
+  background: rgba(124,92,191,0.04);
+  border: 1px solid rgba(124,92,191,0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ━━━ Serif body text (for result reading) ━━━ */
+
+.text-serif {
+  font-family: var(--font-serif), "Hiragino Mincho ProN", "Yu Mincho", serif;
+  line-height: 1.9;
+}
+
+/* ━━━ Share card (no webkit clip for compatibility) ━━━ */
+
+.share-card-bg {
+  background: linear-gradient(160deg, #0a0e1a 0%, #1a1240 50%, #0d1025 100%);
+}
+
+/* ━━━ Vertical text ━━━ */
+
+.writing-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.3em;
+}
+
 /* Print styles */
 @media print {
   body { background: #fff; }
   .no-print { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .char-breathe,
+  .char-breathe-fast,
+  .char-search,
+  .float-slow,
+  .float-fast,
+  .glow-pulse {
+    animation: none !important;
+  }
 }
