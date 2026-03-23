@@ -416,12 +416,10 @@ export default function HomePage() {
                         type="text" value={name} onChange={(e) => setName(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) { playTap(); go("ask_birthday"); } }}
                         placeholder="ニックネームでOK" autoFocus
-                        className="w-full px-2 py-3.5 text-sm text-white placeholder-white/20 outline-none transition-all"
+                        className="w-full px-3 py-3.5 rounded text-sm text-white placeholder-white/30 outline-none transition-all focus:border-[var(--brass)]"
                         style={{
-                          background: "rgba(20,16,10,0.6)",
-                          border: "none",
-                          borderBottom: "1px solid rgba(201,169,110,0.2)",
-                          borderRadius: "0",
+                          background: "rgba(44,32,24,0.7)",
+                          border: "1px solid rgba(201,169,110,0.25)",
                           fontFamily: "var(--font-serif-body), serif",
                         }}
                       />
@@ -431,7 +429,7 @@ export default function HomePage() {
                         onClick={() => { if (name.trim()) { playTap(); go("ask_birthday"); } }}
                         disabled={!name.trim()}
                         className="mt-3 w-full py-3 rounded text-sm font-medium disabled:opacity-20 transition-all"
-                        style={{ background: "transparent", border: "1px solid var(--brass)", color: "var(--brass-light)", fontFamily: "var(--font-ui), sans-serif" }}
+                        style={{ background: "rgba(201,169,110,0.12)", border: "1px solid var(--brass)", color: "var(--brass-light)", fontFamily: "var(--font-ui), sans-serif" }}
                       >
                         次へ
                       </motion.button>
@@ -457,7 +455,7 @@ export default function HomePage() {
                           <select
                             key={idx} value={sel.val} onChange={(e) => sel.set(e.target.value)}
                             className="px-2 py-3.5 text-sm text-white text-center outline-none appearance-none"
-                            style={{ background: "rgba(20,16,10,0.6)", border: "none", borderBottom: "1px solid rgba(201,169,110,0.2)", borderRadius: "0" }}
+                            style={{ background: "rgba(44,32,24,0.7)", border: "1px solid rgba(201,169,110,0.25)", borderRadius: "4px" }}
                           >
                             {sel.opts.map((o) => (
                               <option key={o.v} value={o.v} className="bg-[#110e09] text-white">{o.l}</option>
