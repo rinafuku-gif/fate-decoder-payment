@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import StarField from "@/components/StarField";
-import Aurora from "@/components/Aurora";
+import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
 import FadeIn from "@/components/FadeIn";
 import { calculateAll, type FortuneResult } from "@/lib/fortune-calc";
@@ -239,7 +239,7 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
   if (screen === "select") {
     return (
       <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
-        <Aurora />
+        <LibraryBg scene="main" />
         <StarField />
         <GrainOverlay />
         <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
@@ -299,7 +299,7 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
     ];
     return (
       <main className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: "#0a0e1a" }}>
-        <Aurora />
+        <LibraryBg scene="main" />
         <StarField />
         <GrainOverlay />
         <div className="relative z-10 text-center px-6">
@@ -332,7 +332,7 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
     const topicLabel = TOPICS.find(t => t.id === result.topic)?.label || "総合運";
     return (
       <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
-        <Aurora />
+        <LibraryBg scene="main" />
         <StarField />
         <GrainOverlay />
         <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
@@ -490,7 +490,7 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
   // ━━━ Input form — dark immersive ━━━
   return (
     <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
-      <Aurora />
+      <LibraryBg scene="main" />
       <StarField />
       <GrainOverlay />
       <div className="relative z-10 max-w-lg mx-auto px-5 py-8">

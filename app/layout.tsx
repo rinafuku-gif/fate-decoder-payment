@@ -71,6 +71,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={`${playfairDisplay.variable} ${ebGaramond.variable} ${shipporiMincho.variable} ${notoSerifJP.variable} ${notoSansJP.variable} h-full antialiased`}>
+      <head>
+        <link rel="preload" as="image" href="/bg-library-main.webp" />
+        <link rel="preload" as="image" href="/bg-library-main-m.webp" media="(max-width: 768px)" />
+        <link rel="prefetch" as="image" href="/bg-library-aisle.webp" />
+        <link rel="prefetch" as="image" href="/bg-library-desk.webp" />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

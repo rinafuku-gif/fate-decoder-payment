@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import Aurora from "@/components/Aurora";
 import StarField from "@/components/StarField";
 import GrainOverlay from "@/components/GrainOverlay";
 import LibraryBg from "@/components/LibraryBg";
@@ -237,10 +236,9 @@ export default function HomePage() {
         </div>
       )}
 
-      <Aurora />
+      <LibraryBg scene={step === "loading" ? "aisle" : step === "result" ? "desk" : "main"} />
       <StarField />
       <GrainOverlay />
-      <LibraryBg />
       <TouchParticles />
       <SoundToggle />
 

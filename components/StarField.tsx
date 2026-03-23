@@ -70,14 +70,14 @@ export default function StarField() {
         ctx.beginPath();
         ctx.arc(mote.x + driftX, mote.y, mote.size, 0, Math.PI * 2);
         // Warm amber/gold color instead of bright gold
-        ctx.fillStyle = `rgba(210, 185, 140, ${alpha})`;
+        ctx.fillStyle = `rgba(220, 195, 150, ${alpha})`;
         ctx.fill();
 
         // Soft warm glow for larger motes
         if (mote.size > 1.5) {
           ctx.beginPath();
           ctx.arc(mote.x + driftX, mote.y, mote.size * 3, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(210, 185, 140, ${alpha * 0.06})`;
+          ctx.fillStyle = `rgba(220, 195, 150, ${alpha * 0.06})`;
           ctx.fill();
         }
 
