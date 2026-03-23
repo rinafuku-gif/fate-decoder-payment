@@ -9,7 +9,7 @@ export default function LegalPage() {
             {[
               ["販売事業者", "SATOYAMA AI BASE（稲福良祐）"],
               ["所在地", "山梨県上野原市"],
-              ["連絡先", "r.inafuku@tonari2tomaru.com"],
+              ["連絡先", "r.inafuku@tonari2tomaru.com（電話番号は請求があった場合に遅滞なく開示いたします）"],
               ["販売価格", "各サービスページに表示された金額（税込）"],
               ["支払方法", "クレジットカード（Stripe経由）"],
               ["支払時期", "サービス利用時に即時決済"],
