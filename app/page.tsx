@@ -61,13 +61,13 @@ export default function HomePage() {
   const [loadingStage, setLoadingStage] = useState(0);
   const [introReady, setIntroReady] = useState(false);
   const [hoveredTopic, setHoveredTopic] = useState<TopicId | null>(null);
+  const [doorOpen, setDoorOpen] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const r = params.get("ref");
     if (r) { setRef(r); sessionStorage.setItem("fd_ref", r); }
     else { const s = sessionStorage.getItem("fd_ref"); if (s) setRef(s); }
-    // Intro animation sequence
     setTimeout(() => setIntroReady(true), 500);
   }, []);
 
@@ -133,6 +133,14 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen relative overflow-hidden" style={{ background: "var(--background)" }}>
+      {/* Door overlay — covers entire screen, splits open when entering */}
+      {doorOpen && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          <div className="door-left absolute inset-y-0 left-0 w-1/2" style={{ background: "var(--background)" }} />
+          <div className="door-right absolute inset-y-0 right-0 w-1/2" style={{ background: "var(--background)" }} />
+        </div>
+      )}
+
       <Aurora />
       <StarField />
       <GrainOverlay />
@@ -199,7 +207,7 @@ export default function HomePage() {
                         key={c}
                         className={`w-14 h-14 rounded-full overflow-hidden ${cfg.breatheClass}`}
                         style={{
-                          border: `1.5px solid ${c === "urara" ? "rgba(124,92,191,0.3)" : "rgba(201,169,110,0.3)"}`,
+                          border: `1.5px solid ${c === "urara" ? "rgba(180,150,100,0.3)" : "rgba(201,169,110,0.3)"}`,
                           boxShadow: `0 0 20px ${cfg.accentColor}`,
                         }}
                       >
@@ -216,7 +224,10 @@ export default function HomePage() {
                   transition={{ delay: 2.5, duration: 0.5 }}
                   whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(201,169,110,0.25)" }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => { playTap(); go("char_select"); }}
+                  onClick={() => {
+                    setDoorOpen(true);
+                    setTimeout(() => { go("char_select"); setDoorOpen(false); }, 1200);
+                  }}
                   className="mx-auto px-10 py-3.5 rounded-full text-sm font-medium text-white border glow-pulse"
                   style={{ borderColor: "rgba(201,169,110,0.4)", background: "rgba(201,169,110,0.08)" }}
                 >
@@ -257,7 +268,7 @@ export default function HomePage() {
                         className="rounded-2xl overflow-hidden relative"
                         style={{
                           background: "rgba(255,255,255,0.03)",
-                          border: `1px solid ${isUrara ? "rgba(124,92,191,0.2)" : "rgba(201,169,110,0.2)"}`,
+                          border: `1px solid ${isUrara ? "rgba(180,150,100,0.2)" : "rgba(201,169,110,0.2)"}`,
                         }}
                         onClick={() => { playTap(); setCharacter(c); go("ask_name"); }}
                       >
@@ -278,7 +289,7 @@ export default function HomePage() {
                             {/* Bottom gradient */}
                             <div
                               className="absolute inset-x-0 bottom-0 h-1/3"
-                              style={{ background: `linear-gradient(to top, ${isUrara ? "rgba(15,10,30,0.9)" : "rgba(15,18,30,0.9)"}, transparent)` }}
+                              style={{ background: `linear-gradient(to top, ${isUrara ? "rgba(12,10,8,0.9)" : "rgba(12,10,8,0.9)"}, transparent)` }}
                             />
                             {/* Name overlay */}
                             <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -343,7 +354,7 @@ export default function HomePage() {
                             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(201,169,110,0.2)" }}
                           >
                             {sel.opts.map((o) => (
-                              <option key={o.v} value={o.v} className="bg-[#070a14] text-white">{o.l}</option>
+                              <option key={o.v} value={o.v} className="bg-[#0c0a08] text-white">{o.l}</option>
                             ))}
                           </select>
                         ))}
@@ -417,7 +428,7 @@ export default function HomePage() {
                     <div
                       className="w-28 h-28 rounded-full overflow-hidden mx-auto glow-pulse"
                       style={{
-                        border: `2px solid ${character === "urara" ? "rgba(124,92,191,0.5)" : "rgba(201,169,110,0.5)"}`,
+                        border: `2px solid ${character === "urara" ? "rgba(180,150,100,0.5)" : "rgba(201,169,110,0.5)"}`,
                       }}
                     >
                       <Image src={charConfig.image} alt={charConfig.name} width={224} height={224} className="object-cover w-full h-full" />
@@ -438,7 +449,7 @@ export default function HomePage() {
                     <motion.div
                       key={i}
                       className="absolute inset-0 rounded-full border"
-                      style={{ borderColor: character === "urara" ? "rgba(124,92,191,0.2)" : "rgba(201,169,110,0.2)" }}
+                      style={{ borderColor: character === "urara" ? "rgba(180,150,100,0.2)" : "rgba(201,169,110,0.2)" }}
                       animate={{ scale: [1, 1.5 + i * 0.3], opacity: [0.4, 0] }}
                       transition={{ duration: 2, repeat: Infinity, delay: i * 0.5, ease: "easeOut" }}
                     />
@@ -509,7 +520,7 @@ export default function HomePage() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 2.7 + i * 0.15 }}
                         className="border-l-2 pl-4 py-2"
-                        style={{ borderLeftColor: character === "urara" ? "rgba(124,92,191,0.4)" : "rgba(201,169,110,0.4)" }}
+                        style={{ borderLeftColor: character === "urara" ? "rgba(180,150,100,0.4)" : "rgba(201,169,110,0.4)" }}
                       >
                         <h3 className="text-xs font-bold text-white/50 mb-1 tracking-wide">{s.title}</h3>
                         <p className="text-sm text-white/75 leading-relaxed text-serif">{result[`section${i + 1}`]}</p>

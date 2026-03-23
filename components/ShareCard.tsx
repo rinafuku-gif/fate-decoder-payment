@@ -39,14 +39,21 @@ export default function ShareCard({
     setSaving(true);
     try {
       const domToImage = (await import("dom-to-image-more")).default;
-      const blob = await domToImage.toBlob(cardRef.current, {
+      // Use toPng with explicit node cloning to avoid border artifacts
+      const dataUrl = await domToImage.toPng(cardRef.current, {
+        bgcolor: "#12100c",
         quality: 1,
-        bgcolor: "#0a0e1a",
-        width: cardRef.current.offsetWidth * 2,
-        height: cardRef.current.offsetHeight * 2,
-        style: { transform: "scale(2)", transformOrigin: "top left" },
+        style: {
+          borderRadius: "0",
+          border: "none",
+          boxShadow: "none",
+          overflow: "hidden",
+        },
       });
-      if (!blob) return;
+
+      // Convert data URL to blob
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
 
       // Try native share with image first (mobile)
       if (navigator.share && navigator.canShare) {
@@ -72,61 +79,63 @@ export default function ShareCard({
     setSaving(false);
   };
 
-  const isUrara = characterId === "urara";
-
   return (
     <div className="mb-8">
-      {/* The actual card */}
+      {/* The actual card — NO borders, NO box-shadow on the capture target */}
       <div
         ref={cardRef}
-        className="share-card-bg rounded-3xl overflow-hidden relative p-6"
-        style={{
-          boxShadow: isUrara
-            ? "0 0 60px rgba(124,92,191,0.2), 0 4px 32px rgba(0,0,0,0.3)"
-            : "0 0 60px rgba(201,169,110,0.2), 0 4px 32px rgba(0,0,0,0.3)",
-        }}
+        className="share-card-bg overflow-hidden relative"
+        style={{ padding: "28px 24px" }}
       >
-        {/* Decorative star symbol in background */}
+        {/* Decorative symbol */}
         <div
           className="absolute top-4 right-4 text-6xl pointer-events-none select-none"
-          style={{ opacity: 0.04, color: isUrara ? "#7c5cbf" : "#c9a96e" }}
+          style={{ opacity: 0.03, color: "#c9a96e" }}
         >
           ✦
         </div>
 
         {/* Header */}
         <div className="flex items-center gap-2 mb-5">
-          <span className="text-[10px] tracking-[0.3em] text-white/20">✦</span>
-          <span className="text-[10px] tracking-[0.3em] text-white/30 uppercase">星の図書館</span>
-          <span className="text-[10px] tracking-[0.3em] text-white/20">✦</span>
+          <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.2)" }}>✦</span>
+          <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" as const }}>星の図書館</span>
+          <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.2)" }}>✦</span>
         </div>
 
-        {/* Character + name */}
-        <div className="flex items-center gap-2.5 mb-4">
+        {/* Character + name — use inline styles to avoid dom-to-image issues */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
           <div
-            className="w-9 h-9 rounded-full overflow-hidden shrink-0"
-            style={{ border: `1.5px solid ${isUrara ? "rgba(124,92,191,0.5)" : "rgba(201,169,110,0.5)"}` }}
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              overflow: "hidden",
+              flexShrink: 0,
+            }}
           >
-            <Image src={characterAvatar} alt={characterName} width={72} height={72} className="object-cover w-full h-full" />
+            <Image src={characterAvatar} alt={characterName} width={72} height={72} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
           </div>
           <div>
-            <p className="text-xs text-white/50">{characterName}が読んだ</p>
-            <p className="text-[10px] text-white/25">{userName}の{topicLabel}</p>
+            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", margin: 0 }}>{characterName}が読んだ</p>
+            <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.25)", margin: 0 }}>{userName}の{topicLabel}</p>
           </div>
         </div>
 
         {/* Book title */}
         {bookTitle && (
-          <p className="text-[11px] text-white/30 mb-2 tracking-wide">「{bookTitle}」</p>
+          <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginBottom: "8px", letterSpacing: "0.05em" }}>「{bookTitle}」</p>
         )}
 
         {/* Main oneWord */}
-        <div className="py-4 mb-4">
+        <div style={{ padding: "16px 0", marginBottom: "16px" }}>
           <p
-            className="text-2xl sm:text-3xl font-bold leading-snug"
             style={{
+              fontSize: "26px",
+              fontWeight: "bold",
+              lineHeight: 1.3,
               fontFamily: "var(--font-serif), serif",
-              color: isUrara ? "#c4b0e0" : "#e8d5a8",
+              color: "#e8d5a8",
+              margin: 0,
             }}
           >
             {oneWord}
@@ -134,35 +143,42 @@ export default function ShareCard({
         </div>
 
         {/* Data badges */}
-        <div className="flex items-center gap-3 text-[11px] text-white/35 mb-4">
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "11px", color: "rgba(255,255,255,0.35)", marginBottom: "16px" }}>
           {westernSign && <span>♈ {westernSign}</span>}
           {kin && <span>KIN {kin}</span>}
           {glyph && <span>{glyph}</span>}
         </div>
 
-        {/* Divider */}
-        <div className="h-px w-full mb-3" style={{ background: `linear-gradient(90deg, transparent, ${isUrara ? "rgba(124,92,191,0.3)" : "rgba(201,169,110,0.3)"}, transparent)` }} />
+        {/* Divider — use background instead of border */}
+        <div style={{ height: "1px", width: "100%", marginBottom: "12px", background: "linear-gradient(90deg, transparent, rgba(201,169,110,0.25), transparent)" }} />
 
         {/* CTA */}
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] text-white/20">{siteUrl.replace("https://", "")}</p>
-          <p className="text-[10px] text-white/30">あなたの星も読んでみる →</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.2)", margin: 0 }}>{siteUrl.replace("https://", "")}</p>
+          <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", margin: 0 }}>あなたの星も読んでみる →</p>
         </div>
       </div>
 
+      {/* Visual wrapper for display only (shadow/rounded) — NOT part of the capture */}
+      <style jsx>{`
+        div:first-child > div:first-child {
+          border-radius: 24px;
+          box-shadow: 0 0 60px rgba(201,169,110,0.15), 0 4px 32px rgba(0,0,0,0.3);
+        }
+      `}</style>
+
       {/* Save / Share button */}
       <motion.button
-        whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}
+        whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.97 }}
         onClick={handleSave}
         disabled={saving}
-        className="mt-3 w-full py-3 rounded-full text-sm font-medium text-white/80 transition-all disabled:opacity-40"
+        className="mt-3 w-full py-3 rounded-full text-sm font-medium text-white/70 transition-all disabled:opacity-40"
         style={{
-          background: "linear-gradient(135deg, rgba(201,169,110,0.15), rgba(124,92,191,0.15))",
-          border: "1px solid rgba(201,169,110,0.2)",
+          background: "rgba(201,169,110,0.08)",
         }}
       >
-        {saving ? "…準備中" : "📷 カードを保存 / シェア"}
+        {saving ? "…準備中" : "カードを保存"}
       </motion.button>
     </div>
   );

@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #070a14;
+  --background: #0c0a08;
   --foreground: #e8e4dc;
-  --navy: #0a0e1a;
-  --navy-light: #2d3a5c;
+  --library-dark: #12100c;
+  --library-mid: #1a1610;
   --gold: #c9a96e;
   --gold-light: #e8d5a8;
-  --violet: #7c5cbf;
-  --violet-glow: rgba(124,92,191,0.15);
+  --gold-warm: #b89a5a;
+  --amber: #8b6914;
   --cream: #f5f0e8;
   --warm-white: #faf8f4;
 }
@@ -134,7 +134,27 @@ body {
 /* ━━━ Share card (no webkit clip for compatibility) ━━━ */
 
 .share-card-bg {
-  background: linear-gradient(160deg, #0a0e1a 0%, #1a1240 50%, #0d1025 100%);
+  background: linear-gradient(160deg, #12100c 0%, #1a1610 50%, #0c0a08 100%);
+}
+
+/* ━━━ Door opening animation ━━━ */
+
+@keyframes door-open-left {
+  0% { transform: translateX(0) scaleX(1); }
+  100% { transform: translateX(-100%) scaleX(0.8); opacity: 0; }
+}
+
+@keyframes door-open-right {
+  0% { transform: translateX(0) scaleX(1); }
+  100% { transform: translateX(100%) scaleX(0.8); opacity: 0; }
+}
+
+.door-left {
+  animation: door-open-left 1.2s ease-in-out forwards;
+}
+
+.door-right {
+  animation: door-open-right 1.2s ease-in-out forwards;
 }
 
 /* ━━━ Vertical text ━━━ */

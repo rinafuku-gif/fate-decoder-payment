@@ -9,7 +9,7 @@ export const CHARACTER_CONFIG = {
     avatar: "/urara.png",
     floatClass: "float-slow",
     breatheClass: "char-breathe",
-    accentColor: "rgba(124,92,191,0.3)",
+    accentColor: "rgba(180,150,100,0.3)",
     loadingText: "…ちょっと待ってて。図書館で探してくる",
     loadingCompatText: "…ふたりの本、見比べてくるね",
     topicHover: {
