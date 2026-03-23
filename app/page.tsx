@@ -313,22 +313,6 @@ export default function HomePage() {
                 </motion.div>
 
                 {/* Door mode toggle */}
-                <motion.div
-                  className="flex justify-center mb-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: introReady ? 0.6 : 0 }}
-                  transition={{ delay: 2.3, duration: 0.4 }}
-                >
-                  <button
-                    onClick={() => setDoorMode(doorMode === "keyhole" ? "book" : "keyhole")}
-                    className="text-[11px] text-white/50 tracking-wide px-3 py-1 rounded-full border border-white/10 hover:border-[var(--gold)]/30 transition-colors"
-                  >
-                    {doorMode === "keyhole" ? "✦ 鍵穴" : "📖 古書"}
-                    <span className="mx-1.5 text-white/20">/</span>
-                    <span className="text-white/30">{doorMode === "keyhole" ? "📖 古書" : "✦ 鍵穴"}</span>
-                  </button>
-                </motion.div>
-
                 {/* CTA */}
                 <motion.button
                   initial={{ opacity: 0, y: 20 }}
