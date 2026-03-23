@@ -320,18 +320,7 @@ export default function HomePage() {
                   transition={{ delay: 2.5, duration: 0.5 }}
                   whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(201,169,110,0.25)" }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setDoorOpen(true);
-                    if (doorMode === "keyhole") {
-                      /* Keyhole: brief pause, then light expands */
-                      setTimeout(() => setKeyholeOpening(true), 200);
-                      setTimeout(() => { go("char_select"); setDoorOpen(false); setKeyholeOpening(false); }, 1800);
-                    } else {
-                      /* Book: cover opens, then transition */
-                      setTimeout(() => setBookOpened(true), 100);
-                      setTimeout(() => { go("char_select"); setDoorOpen(false); setBookOpened(false); }, 1800);
-                    }
-                  }}
+                  onClick={() => { go("char_select"); }}
                   className="mx-auto px-10 py-3.5 rounded text-sm font-medium border transition-all"
                   style={{
                     borderColor: "rgba(201,169,110,0.4)",
