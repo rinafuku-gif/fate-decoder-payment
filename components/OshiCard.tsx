@@ -33,13 +33,13 @@ export default function OshiCard({ characterName, characterAvatar, characterId }
       animate={{ opacity: 1, y: 0 }}
       className="mb-6 p-4 rounded-2xl flex items-center gap-3"
       style={{
-        background: isUrara ? "rgba(124,92,191,0.06)" : "rgba(201,169,110,0.06)",
-        border: `1px solid ${isUrara ? "rgba(124,92,191,0.2)" : "rgba(201,169,110,0.2)"}`,
+        background: isUrara ? "rgba(201,169,110,0.06)" : "rgba(201,169,110,0.06)",
+        border: `1px solid ${isUrara ? "rgba(201,169,110,0.2)" : "rgba(201,169,110,0.2)"}`,
       }}
     >
       <div
         className="w-8 h-8 rounded-full overflow-hidden shrink-0"
-        style={{ border: `1.5px solid ${isUrara ? "rgba(124,92,191,0.5)" : "rgba(201,169,110,0.5)"}` }}
+        style={{ border: `1.5px solid ${isUrara ? "rgba(201,169,110,0.5)" : "rgba(201,169,110,0.5)"}` }}
       >
         <Image src={characterAvatar} alt={characterName} width={64} height={64} className="object-cover w-full h-full" />
       </div>
@@ -52,8 +52,8 @@ export default function OshiCard({ characterName, characterAvatar, characterId }
         onClick={handleCopy}
         className="shrink-0 px-3 py-1.5 rounded-full text-[10px] text-white/50 transition-all"
         style={{
-          border: `1px solid ${isUrara ? "rgba(124,92,191,0.3)" : "rgba(201,169,110,0.3)"}`,
-          background: isUrara ? "rgba(124,92,191,0.08)" : "rgba(201,169,110,0.08)",
+          border: `1px solid ${isUrara ? "rgba(201,169,110,0.3)" : "rgba(201,169,110,0.3)"}`,
+          background: isUrara ? "rgba(201,169,110,0.08)" : "rgba(201,169,110,0.08)",
         }}
       >
         <AnimatePresence mode="wait">

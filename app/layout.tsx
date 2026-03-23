@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-import { Shippori_Mincho, Noto_Serif_JP } from "next/font/google";
+import { Playfair_Display, EB_Garamond, Shippori_Mincho, Noto_Serif_JP, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const playfairDisplay = Playfair_Display({
+  weight: ["400", "700"],
+  variable: "--font-display",
   subsets: ["latin"],
+  display: "optional",
+});
+
+const ebGaramond = EB_Garamond({
+  weight: ["400", "500"],
+  variable: "--font-body-en",
+  subsets: ["latin"],
+  display: "optional",
 });
 
 const shipporiMincho = Shippori_Mincho({
@@ -22,6 +30,13 @@ const notoSerifJP = Noto_Serif_JP({
   subsets: ["latin"],
   display: "optional",
   preload: true,
+});
+
+const notoSansJP = Noto_Sans_JP({
+  weight: ["400", "500"],
+  variable: "--font-ui",
+  subsets: ["latin"],
+  display: "optional",
 });
 
 export const metadata: Metadata = {
@@ -55,7 +70,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={`${geistSans.variable} ${shipporiMincho.variable} ${notoSerifJP.variable} h-full antialiased`}>
+    <html lang="ja" className={`${playfairDisplay.variable} ${ebGaramond.variable} ${shipporiMincho.variable} ${notoSerifJP.variable} ${notoSansJP.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

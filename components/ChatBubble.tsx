@@ -31,11 +31,11 @@ export default function ChatBubble({ characterImage, characterName, breatheClass
         </div>
       </div>
       <div
-        className="rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%]"
+        className="rounded-xl rounded-tl-sm px-4 py-3 max-w-[85%]"
         style={{
-          background: "rgba(15, 20, 40, 0.85)",
-          border: "1px solid rgba(201,169,110,0.15)",
-          boxShadow: "0 2px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)",
+          background: "rgba(30, 21, 16, 0.9)",
+          border: "1px solid rgba(201,169,110,0.1)",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(201,169,110,0.03)",
         }}
       >
         <p className="text-sm text-white/90 leading-relaxed">
