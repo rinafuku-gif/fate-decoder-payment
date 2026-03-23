@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Aurora from "@/components/Aurora";
 import StarField from "@/components/StarField";
 import GrainOverlay from "@/components/GrainOverlay";
+import LibraryBg from "@/components/LibraryBg";
 import TouchParticles from "@/components/TouchParticles";
 import ChatBubble from "@/components/ChatBubble";
 import FadeIn from "@/components/FadeIn";
@@ -62,6 +63,9 @@ export default function HomePage() {
   const [introReady, setIntroReady] = useState(false);
   const [hoveredTopic, setHoveredTopic] = useState<TopicId | null>(null);
   const [doorOpen, setDoorOpen] = useState(false);
+  const [doorMode, setDoorMode] = useState<"keyhole" | "book">("keyhole");
+  const [keyholeOpening, setKeyholeOpening] = useState(false);
+  const [bookOpened, setBookOpened] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -133,17 +137,109 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen relative overflow-hidden" style={{ background: "var(--background)" }}>
-      {/* Door overlay — covers entire screen, splits open when entering */}
-      {doorOpen && (
+      {/* ── Keyhole transition overlay (Pattern A) ── */}
+      {doorOpen && doorMode === "keyhole" && (
         <div className="fixed inset-0 z-50 pointer-events-none">
-          <div className="door-left absolute inset-y-0 left-0 w-1/2" style={{ background: "var(--background)" }} />
-          <div className="door-right absolute inset-y-0 right-0 w-1/2" style={{ background: "var(--background)" }} />
+          {/* Dark screen with keyhole-shaped window */}
+          {!keyholeOpening && (
+            <>
+              {/* Keyhole border glow */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="keyhole-border w-48 h-72 sm:w-56 sm:h-80" style={{ background: "rgba(201,169,110,0.15)" }} />
+              </div>
+              {/* Keyhole window — shows background through it */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: "var(--background)",
+                  maskImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 300'%3E%3Ccircle cx='100' cy='90' r='50' fill='black'/%3E%3Crect x='80' y='130' width='40' height='130' rx='4' fill='black'/%3E%3C/svg%3E")`,
+                  maskSize: "120px 180px",
+                  maskPosition: "center",
+                  maskRepeat: "no-repeat",
+                  maskComposite: "exclude",
+                  WebkitMaskImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='white'/%3E%3Ccircle cx='100' cy='90' r='50' fill='black'/%3E%3Crect x='80' y='130' width='40' height='130' rx='4' fill='black'/%3E%3C/svg%3E")`,
+                  WebkitMaskSize: "120px 180px",
+                  WebkitMaskPosition: "center",
+                  WebkitMaskRepeat: "no-repeat",
+                }}
+              />
+              {/* Warm light through keyhole */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div
+                  className="keyhole-shape w-48 h-72 sm:w-56 sm:h-80"
+                  style={{
+                    background: "radial-gradient(ellipse at 50% 35%, rgba(201,169,110,0.2) 0%, rgba(201,169,110,0.05) 60%, transparent 100%)",
+                  }}
+                />
+              </div>
+            </>
+          )}
+          {/* Expanding circle reveal */}
+          {keyholeOpening && (
+            <>
+              <div
+                className="absolute inset-0 bg-[var(--background)]"
+                style={{
+                  animation: "keyhole-reveal 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+                }}
+              />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: "radial-gradient(circle at 50% 50%, rgba(201,169,110,0.35) 0%, transparent 50%)",
+                  animation: "keyhole-glow 1.4s ease-out forwards",
+                }}
+              />
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── Book transition overlay (Pattern B) ── */}
+      {doorOpen && doorMode === "book" && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          <div className="book-cover absolute inset-0">
+            {/* Page underneath (visible as cover opens) */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(180deg, #f5f0e8 0%, #e8dcc8 50%, #ddd0b8 100%)",
+                boxShadow: "inset 0 0 60px rgba(0,0,0,0.15)",
+              }}
+            />
+            {/* Front cover */}
+            <div
+              className={`book-front absolute inset-0 book-leather book-gold-border ${bookOpened ? "book-opened" : ""}`}
+              style={{ animation: bookOpened ? undefined : "leather-shimmer 8s ease-in-out infinite" }}
+            >
+              {/* Gold decorative lines */}
+              <div className="absolute inset-x-8 top-[15%] h-px book-gold-line" />
+              <div className="absolute inset-x-8 bottom-[15%] h-px book-gold-line" />
+              <div className="absolute inset-y-[15%] left-8 w-px book-gold-line" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(201,169,110,0.15) 10%, rgba(201,169,110,0.3) 50%, rgba(201,169,110,0.15) 90%, transparent 100%)" }} />
+              <div className="absolute inset-y-[15%] right-8 w-px book-gold-line" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(201,169,110,0.15) 10%, rgba(201,169,110,0.3) 50%, rgba(201,169,110,0.15) 90%, transparent 100%)" }} />
+
+              {/* Book title on cover */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <p className="book-title-emboss text-[var(--gold)] text-3xl sm:text-4xl font-bold tracking-wider" style={{ fontFamily: "var(--font-serif), serif" }}>
+                  星の図書館
+                </p>
+                <div className="mt-4 w-16 h-px" style={{ background: "rgba(201,169,110,0.3)" }} />
+              </div>
+
+              {/* Spine shadow */}
+              <div
+                className="absolute top-0 left-0 w-4 h-full book-spine-texture"
+                style={{ background: "linear-gradient(to right, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)" }}
+              />
+            </div>
+          </div>
         </div>
       )}
 
       <Aurora />
       <StarField />
       <GrainOverlay />
+      <LibraryBg />
       <TouchParticles />
       <SoundToggle />
 
@@ -189,7 +285,7 @@ export default function HomePage() {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 1.5 }}
                   >
-                    うららとれきが、あなたの星を読み解く
+                    ここには、すべての人の星の記録がある
                   </motion.p>
                 </motion.div>
 
@@ -217,6 +313,23 @@ export default function HomePage() {
                   })}
                 </motion.div>
 
+                {/* Door mode toggle */}
+                <motion.div
+                  className="flex justify-center mb-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: introReady ? 0.6 : 0 }}
+                  transition={{ delay: 2.3, duration: 0.4 }}
+                >
+                  <button
+                    onClick={() => setDoorMode(doorMode === "keyhole" ? "book" : "keyhole")}
+                    className="text-[11px] text-white/50 tracking-wide px-3 py-1 rounded-full border border-white/10 hover:border-[var(--gold)]/30 transition-colors"
+                  >
+                    {doorMode === "keyhole" ? "✦ 鍵穴" : "📖 古書"}
+                    <span className="mx-1.5 text-white/20">/</span>
+                    <span className="text-white/30">{doorMode === "keyhole" ? "📖 古書" : "✦ 鍵穴"}</span>
+                  </button>
+                </motion.div>
+
                 {/* CTA */}
                 <motion.button
                   initial={{ opacity: 0, y: 20 }}
@@ -226,12 +339,20 @@ export default function HomePage() {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
                     setDoorOpen(true);
-                    setTimeout(() => { go("char_select"); setDoorOpen(false); }, 1200);
+                    if (doorMode === "keyhole") {
+                      /* Keyhole: brief pause, then light expands */
+                      setTimeout(() => setKeyholeOpening(true), 200);
+                      setTimeout(() => { go("char_select"); setDoorOpen(false); setKeyholeOpening(false); }, 1800);
+                    } else {
+                      /* Book: cover opens, then transition */
+                      setTimeout(() => setBookOpened(true), 100);
+                      setTimeout(() => { go("char_select"); setDoorOpen(false); setBookOpened(false); }, 1800);
+                    }
                   }}
                   className="mx-auto px-10 py-3.5 rounded-full text-sm font-medium text-white border glow-pulse"
                   style={{ borderColor: "rgba(201,169,110,0.4)", background: "rgba(201,169,110,0.08)" }}
                 >
-                  図書館に入る
+                  {doorMode === "keyhole" ? "鍵穴を覗く" : "本を開く"}
                 </motion.button>
 
                 {/* Hashtag hint */}
