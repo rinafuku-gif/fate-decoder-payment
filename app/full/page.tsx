@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { calculateAll } from "@/lib/fortune-calc";
 import { generateFortune } from "@/app/actions";
+import LibraryBg from "@/components/LibraryBg";
+import GrainOverlay from "@/components/GrainOverlay";
+
+// テストモード: trueなら決済なしで鑑定可能。ローンチ時にfalseにする
+const TEST_MODE = true;
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -13,7 +18,7 @@ export default function FullPage() {
   const router = useRouter();
   const [ref, setRef] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [verified, setVerified] = useState(false);
+  const [verified, setVerified] = useState(TEST_MODE);
   const [screen, setScreen] = useState<"input" | "loading" | "result">("input");
   const [form, setForm] = useState({
     name: "", year: "", month: "1", day: "1",
@@ -26,6 +31,7 @@ export default function FullPage() {
     const t = params.get("payment_token");
     const r = params.get("ref") || sessionStorage.getItem("fd_ref");
     if (r) setRef(r);
+    if (TEST_MODE) return; // テストモード: 認証スキップ
     if (t) {
       setToken(t);
       fetch("/api/verify-token", {
@@ -151,7 +157,7 @@ export default function FullPage() {
 
   if (!verified) {
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: "#0c0a08" }}>
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
         <div className="w-8 h-8 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin" />
       </main>
     );
@@ -159,7 +165,7 @@ export default function FullPage() {
 
   if (screen === "loading") {
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: "#0c0a08" }}>
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
         <div className="text-center">
           <div className="w-10 h-10 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin mx-auto mb-4" />
           <p className="text-sm text-white/60">…あなたの星の記録を読み解いています</p>
@@ -171,8 +177,10 @@ export default function FullPage() {
 
   if (screen === "result") {
     return (
-      <main className="min-h-screen" style={{ background: "#0c0a08" }}>
-        <div dangerouslySetInnerHTML={{ __html: resultHtml }} />
+      <main className="min-h-screen relative" style={{ background: "var(--background)" }}>
+        <LibraryBg scene="desk" />
+        <GrainOverlay />
+        <div className="relative z-20" dangerouslySetInnerHTML={{ __html: resultHtml }} />
         <div className="max-w-lg mx-auto px-5 pb-8 no-print">
           <div className="flex gap-3">
             <button
@@ -195,8 +203,10 @@ export default function FullPage() {
 
   // Input form
   return (
-    <main className="min-h-screen" style={{ background: "#0c0a08" }}>
-      <div className="max-w-lg mx-auto px-5 py-8">
+    <main className="min-h-screen relative" style={{ background: "var(--background)" }}>
+      <LibraryBg scene="main" />
+      <GrainOverlay />
+      <div className="relative z-20 max-w-lg mx-auto px-5 py-8">
         <button
           onClick={() => router.push(ref ? `/?ref=${ref}` : "/")}
           className="text-sm text-white/30 hover:text-white/50 mb-4 inline-block transition-colors"

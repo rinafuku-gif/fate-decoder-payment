@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { calculateAll, calculateCompatibility, type CompatibilityType } from "@/lib/fortune-calc";
 import { generateFortune } from "@/app/actions";
+import LibraryBg from "@/components/LibraryBg";
+import GrainOverlay from "@/components/GrainOverlay";
+
+// テストモード: trueなら決済なしで鑑定可能。ローンチ時にfalseにする
+const TEST_MODE = true;
 
 const COMPAT_TYPES: { id: CompatibilityType; label: string; desc: string }[] = [
   { id: "love", label: "恋愛・パートナー", desc: "恋愛やパートナーシップの相性" },
@@ -14,7 +19,7 @@ const COMPAT_TYPES: { id: CompatibilityType; label: string; desc: string }[] = [
 export default function CompatibilityPage() {
   const router = useRouter();
   const [ref, setRef] = useState<string | null>(null);
-  const [verified, setVerified] = useState(false);
+  const [verified, setVerified] = useState(TEST_MODE);
   const [screen, setScreen] = useState<"type-select" | "input" | "loading" | "result">("type-select");
   const [compatType, setCompatType] = useState<CompatibilityType>("love");
   const [person1, setPerson1] = useState({ name: "", year: "", month: "1", day: "1" });
@@ -26,6 +31,7 @@ export default function CompatibilityPage() {
     const t = params.get("payment_token");
     const r = params.get("ref") || sessionStorage.getItem("fd_ref");
     if (r) setRef(r);
+    if (TEST_MODE) return; // テストモード: 認証スキップ
     if (t) {
       fetch("/api/verify-token", {
         method: "POST",
@@ -105,7 +111,7 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
 
   if (!verified) {
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: "#0c0a08" }}>
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
         <div className="w-8 h-8 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin" />
       </main>
     );
@@ -113,7 +119,7 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
 
   if (screen === "loading") {
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: "#0c0a08" }}>
+      <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
         <div className="text-center">
           <div className="w-10 h-10 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin mx-auto mb-4" />
           <p className="text-sm text-white/60">…あなたの星の記録を読み解いています</p>
@@ -125,8 +131,10 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
 
   if (screen === "result" && result) {
     return (
-      <main className="min-h-screen" style={{ background: "#0c0a08" }}>
-        <div className="max-w-lg mx-auto px-5 py-8">
+      <main className="min-h-screen relative" style={{ background: "var(--background)" }}>
+        <LibraryBg scene="desk" />
+        <GrainOverlay />
+        <div className="relative z-20 max-w-lg mx-auto px-5 py-8">
           <header className="text-center mb-6">
             <p className="text-xs text-[#c9a96e] tracking-widest mb-1">星の図書館</p>
             <h1 className="text-xl font-bold text-white/90">{result.name1} &times; {result.name2}</h1>
@@ -195,8 +203,10 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
 
   if (screen === "type-select") {
     return (
-      <main className="min-h-screen" style={{ background: "#0c0a08" }}>
-        <div className="max-w-lg mx-auto px-5 py-8">
+      <main className="min-h-screen relative" style={{ background: "var(--background)" }}>
+        <LibraryBg scene="main" />
+        <GrainOverlay />
+        <div className="relative z-20 max-w-lg mx-auto px-5 py-8">
           <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="text-sm text-white/30 hover:text-white/50 mb-4 inline-block transition-colors">← 戻る</button>
           <div className="text-center mb-6">
             <p className="text-xs text-[#c9a96e] tracking-widest mb-1">星の図書館</p>
@@ -219,8 +229,10 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
 
   // Input form
   return (
-    <main className="min-h-screen" style={{ background: "#0c0a08" }}>
-      <div className="max-w-lg mx-auto px-5 py-8">
+    <main className="min-h-screen relative" style={{ background: "var(--background)" }}>
+      <LibraryBg scene="main" />
+      <GrainOverlay />
+      <div className="relative z-20 max-w-lg mx-auto px-5 py-8">
         <button onClick={() => setScreen("type-select")} className="text-sm text-white/30 hover:text-white/50 mb-4 inline-block transition-colors">← タイプ選択へ</button>
         <div className="text-center mb-6">
           <p className="text-xs text-[#c9a96e] tracking-widest mb-1">星の図書館</p>
