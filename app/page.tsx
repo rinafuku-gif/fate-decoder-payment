@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import StarField from "@/components/StarField";
@@ -46,14 +47,12 @@ const TOPIC_PROMPT_FOCUS: Record<TopicId, string> = {
 
 type Step = "intro" | "menu" | "char_select" | "ask_name" | "ask_birthday" | "ask_topic" | "loading" | "result";
 
-type DiagMode = "short" | "full" | "compatibility";
-
 // テストモード（full/compatibilityページと共有）
 const TEST_MODE = true;
 
 export default function HomePage() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("intro");
-  const [diagMode, setDiagMode] = useState<DiagMode>("short");
   const [character, setCharacter] = useState<Character | null>(null);
   const [name, setName] = useState("");
   const [year, setYear] = useState("1995");
@@ -372,7 +371,7 @@ export default function HomePage() {
                     transition={{ delay: 0.3 }}
                     whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(201,169,110,0.15)" }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => { playTap(); setDiagMode("short"); go("char_select"); }}
+                    onClick={() => { playTap(); go("char_select"); }}
                     className="w-full p-5 rounded-lg text-left transition-all"
                     style={{
                       background: "rgba(44,32,24,0.7)",
@@ -394,7 +393,7 @@ export default function HomePage() {
                     transition={{ delay: 0.45 }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => { playTap(); setDiagMode("full"); go("char_select"); }}
+                    onClick={() => { playTap(); router.push(TEST_MODE ? "/full" : "/full"); }}
                     className="w-full p-5 rounded-lg text-left transition-all"
                     style={{
                       background: "rgba(28,23,16,0.7)",
@@ -418,7 +417,7 @@ export default function HomePage() {
                     transition={{ delay: 0.6 }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => { playTap(); setDiagMode("compatibility"); go("char_select"); }}
+                    onClick={() => { playTap(); router.push(TEST_MODE ? "/compatibility" : "/compatibility"); }}
                     className="w-full p-5 rounded-lg text-left transition-all"
                     style={{
                       background: "rgba(28,23,16,0.7)",
