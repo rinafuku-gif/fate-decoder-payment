@@ -431,7 +431,7 @@ export default function HomePage() {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-base font-bold" style={{ color: "var(--text-primary)", fontFamily: "var(--font-serif), serif" }}>相性鑑定</span>
-                      <span className="text-xs" style={{ color: "var(--brass)" }}>¥300</span>
+                      <span className="text-xs" style={{ color: "var(--brass)" }}>¥200</span>
                     </div>
                     <p className="text-xs" style={{ color: "var(--text-dim)" }}>2人の星を重ねて読む</p>
                     <p className="text-[10px] mt-1" style={{ color: "var(--text-dim)" }}>
