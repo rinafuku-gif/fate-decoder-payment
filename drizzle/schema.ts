@@ -21,6 +21,9 @@ export const diagnoses = sqliteTable("diagnoses", {
   birthDate: text("birth_date"),
   paidAmount: integer("paid_amount").notNull().default(0),
   stripeSessionId: text("stripe_session_id").unique(),
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  deviceType: text("device_type"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 

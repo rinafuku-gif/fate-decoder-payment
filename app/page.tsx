@@ -73,9 +73,14 @@ export default function HomePage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const r = params.get("ref");
+    const r = params.get("ref") || params.get("utm_source");
     if (r) { setRef(r); sessionStorage.setItem("fd_ref", r); }
     else { const s = sessionStorage.getItem("fd_ref"); if (s) setRef(s); }
+    // UTMパラメータをsessionStorageに保存
+    const utmS = params.get("utm_source");
+    const utmM = params.get("utm_medium");
+    if (utmS) sessionStorage.setItem("fd_utm_source", utmS);
+    if (utmM) sessionStorage.setItem("fd_utm_medium", utmM);
     setTimeout(() => setIntroReady(true), 500);
   }, []);
 
@@ -106,7 +111,7 @@ export default function HomePage() {
       } catch {
         parsed = { oneWord: "…面白い星の配置", bookTitle: "星が語る、あなたの記録", section1: `…${data.maya.glyph}の紋章。芯が強い。`, section2: `${data.western.sign}のあなたは深い絆を求める。`, section3: `「${data.bazi.weapon}」を持ってる。`, action: "…朝5分、深呼吸してみて", luckyItem: "温かい飲み物" };
       }
-      fetch("/api/log-diagnosis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ref: ref || "direct", mode: "short", topic: currentTopic, name, birthDate: `${year}-${String(parseInt(month)).padStart(2, "0")}-${String(parseInt(day)).padStart(2, "0")}` }) }).catch(() => {});
+      fetch("/api/log-diagnosis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ref: ref || "direct", mode: "short", topic: currentTopic, name, birthDate: `${year}-${String(parseInt(month)).padStart(2, "0")}-${String(parseInt(day)).padStart(2, "0")}`, utmSource: sessionStorage.getItem("fd_utm_source"), utmMedium: sessionStorage.getItem("fd_utm_medium"), deviceType: /Mobi/i.test(navigator.userAgent) ? "mobile" : "desktop" }) }).catch(() => {});
       setResult({ ...parsed, data, name, topic: currentTopic });
       setStep("result");
       playReveal();

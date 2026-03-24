@@ -5,7 +5,7 @@ import { diagnoses } from "@/drizzle/schema";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { ref, mode, name, birthDate, topic } = body;
+    const { ref, mode, name, birthDate, topic, utmSource, utmMedium, deviceType } = body;
 
     await db.insert(diagnoses).values({
       refId: ref || "direct",
@@ -14,6 +14,9 @@ export async function POST(request: NextRequest) {
       userName: name || null,
       birthDate: birthDate || null,
       paidAmount: 0,
+      utmSource: utmSource || null,
+      utmMedium: utmMedium || null,
+      deviceType: deviceType || null,
       createdAt: new Date().toISOString(),
     });
 
