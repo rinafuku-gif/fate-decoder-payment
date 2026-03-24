@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStripeInstance } from "@/lib/stripe";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
-import { diagnoses } from "@/drizzle/schema";
+import { diagnoses, referralFees } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
       const session = event.data.object as Stripe.Checkout.Session;
       const ref = session.metadata?.ref || "direct";
       const mode = session.metadata?.mode || "unknown";
+      const utmSource = session.metadata?.utm_source || "";
+      const REFERRAL_FEE = 50; // 円 — 全モード共通。変更時はここだけ修正
 
       console.log("[Webhook] Payment completed:", {
         sessionId: session.id,
@@ -62,6 +64,24 @@ export async function POST(request: NextRequest) {
         }
       } catch (dbErr) {
         console.error("[Webhook] DB insert error:", dbErr);
+      }
+
+      // QR設置場所へのフィー記録（utm_sourceがある場合のみ）
+      if (utmSource) {
+        try {
+          await db.insert(referralFees).values({
+            placeId: utmSource,
+            stripeSessionId: session.id,
+            mode,
+            amount: Math.round((session.amount_total || 0) / 1),
+            fee: REFERRAL_FEE,
+            status: "unpaid",
+            createdAt: new Date().toISOString(),
+          });
+          console.log(`[Webhook] Referral fee recorded: ${utmSource} → ¥${REFERRAL_FEE}`);
+        } catch (feeErr) {
+          console.error("[Webhook] Referral fee insert error:", feeErr);
+        }
       }
       break;
     }

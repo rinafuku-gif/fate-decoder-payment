@@ -35,6 +35,18 @@ export const paymentTokens = sqliteTable("payment_tokens", {
   used: integer("used", { mode: "boolean" }).notNull().default(false),
 });
 
+export const referralFees = sqliteTable("referral_fees", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  placeId: text("place_id").notNull(), // utm_source
+  stripeSessionId: text("stripe_session_id").notNull(),
+  mode: text("mode").notNull(), // 'full' | 'compatibility'
+  amount: integer("amount").notNull(), // 決済金額（円）
+  fee: integer("fee").notNull(), // フィー（円）
+  status: text("status").notNull().default("unpaid"), // 'unpaid' | 'paid'
+  paidAt: text("paid_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
 export const kickbackPayments = sqliteTable("kickback_payments", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   locationRef: text("location_ref").notNull(),

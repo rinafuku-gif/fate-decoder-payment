@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const mode = body.mode as "full" | "compatibility";
     const ref = body.ref || "direct";
+    const utmSource = body.utmSource || null;
 
     const priceId =
       mode === "compatibility"
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
         service: "fate-decoder",
         mode,
         ref,
+        utm_source: utmSource || "",
       },
     });
 
