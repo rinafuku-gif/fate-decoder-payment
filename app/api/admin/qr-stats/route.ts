@@ -4,10 +4,13 @@ import { diagnoses } from "@/drizzle/schema";
 import { sql } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
-  // 簡易認証（管理画面と同じ）
+  // 認証
   const auth = request.headers.get("authorization");
   const secret = process.env.ADMIN_SECRET;
-  if (secret && auth !== `Bearer ${secret}`) {
+  if (!secret) {
+    return NextResponse.json({ error: "ADMIN_SECRET not configured" }, { status: 500 });
+  }
+  if (auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
