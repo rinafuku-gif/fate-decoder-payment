@@ -6,6 +6,7 @@ import { calculateAll, calculateCompatibility, type CompatibilityType } from "@/
 import { generateFortune } from "@/app/actions";
 import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
+import ShareCard from "@/components/ShareCard";
 
 // テストモード: trueなら決済なしで鑑定可能。ローンチ時にfalseにする
 const TEST_MODE = true;
@@ -185,6 +186,17 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
               </div>
             ))}
           </div>
+
+          {/* Share Card */}
+          <ShareCard
+            characterName="うらら"
+            characterAvatar="/urara.png"
+            characterId="urara"
+            userName={`${result.name1} × ${result.name2}`}
+            topicLabel={COMPAT_TYPES.find(t => t.id === result.type)?.label || "相性占い"}
+            oneWord={`相性スコア ${result.score.total}点`}
+            siteUrl={typeof window !== "undefined" ? window.location.origin : ""}
+          />
 
           <div className="flex gap-3 no-print">
             <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="flex-1 py-2.5 rounded-full border border-white/10 text-sm text-white/50 hover:bg-white/5 transition-colors">

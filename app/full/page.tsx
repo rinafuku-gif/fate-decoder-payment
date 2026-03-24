@@ -6,6 +6,7 @@ import { calculateAll } from "@/lib/fortune-calc";
 import { generateFortune } from "@/app/actions";
 import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
+import ShareCard from "@/components/ShareCard";
 
 // テストモード: trueなら決済なしで鑑定可能。ローンチ時にfalseにする
 const TEST_MODE = true;
@@ -181,6 +182,17 @@ export default function FullPage() {
         <LibraryBg scene="desk" />
         <GrainOverlay />
         <div className="relative z-20" dangerouslySetInnerHTML={{ __html: resultHtml }} />
+        <div className="relative z-20 max-w-lg mx-auto px-5 pb-8">
+          <ShareCard
+            characterName="うらら"
+            characterAvatar="/urara.png"
+            characterId="urara"
+            userName={form.name}
+            topicLabel="フル鑑定"
+            oneWord={form.name + "の星の記録"}
+            siteUrl={typeof window !== "undefined" ? window.location.origin : ""}
+          />
+        </div>
         <div className="max-w-lg mx-auto px-5 pb-8 no-print">
           <div className="flex gap-3">
             <button

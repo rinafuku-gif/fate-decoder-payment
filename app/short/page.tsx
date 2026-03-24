@@ -8,6 +8,7 @@ import StarField from "@/components/StarField";
 import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
 import FadeIn from "@/components/FadeIn";
+import ShareCard from "@/components/ShareCard";
 import { calculateAll, type FortuneResult } from "@/lib/fortune-calc";
 import { generateFortune } from "@/app/actions";
 import { CHARACTER_CONFIG, type Character } from "@/lib/character";
@@ -361,6 +362,20 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
               WebkitTextFillColor: "transparent",
             }}>{result.oneWord}</p>
           </motion.div>
+
+          {/* Share Card */}
+          <ShareCard
+            characterName={charConfig.name}
+            characterAvatar={charConfig.avatar}
+            characterId={character || "urara"}
+            userName={result.name}
+            topicLabel={topicLabel}
+            oneWord={result.oneWord}
+            westernSign={result.data.western.sign}
+            kin={result.data.maya.kin}
+            glyph={result.data.maya.glyph}
+            siteUrl={typeof window !== "undefined" ? window.location.origin : ""}
+          />
 
           {/* Data grid */}
           <div className="grid grid-cols-3 gap-2 mb-6">
