@@ -26,6 +26,7 @@ export default function FullPage() {
     bloodType: "A", birthPlace: "", concern: "",
   });
   const [resultHtml, setResultHtml] = useState("");
+  const [resultMeta, setResultMeta] = useState<{ oneWord: string; bookTitle: string }>({ oneWord: "", bookTitle: "" });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -147,6 +148,10 @@ export default function FullPage() {
         </div>
       `;
 
+      setResultMeta({
+        oneWord: story.prologue?.title || `${form.name}の物語`,
+        bookTitle: story.final?.title || `${form.name}の星の記録`,
+      });
       setResultHtml(html);
       setScreen("result");
       window.scrollTo(0, 0);
@@ -183,13 +188,15 @@ export default function FullPage() {
         <GrainOverlay />
         <div className="relative z-20" dangerouslySetInnerHTML={{ __html: resultHtml }} />
         <div className="relative z-20 max-w-lg mx-auto px-5 pb-8">
+          {/* キャラ選択なし: うらら固定（フル鑑定はキャラ選択機能を持たないため） */}
           <ShareCard
             characterName="うらら"
             characterAvatar="/urara.png"
             characterId="urara"
             userName={form.name}
             topicLabel="フル鑑定"
-            oneWord={form.name + "の星の記録"}
+            oneWord={resultMeta.oneWord}
+            bookTitle={resultMeta.bookTitle}
             siteUrl={typeof window !== "undefined" ? window.location.origin : ""}
           />
         </div>

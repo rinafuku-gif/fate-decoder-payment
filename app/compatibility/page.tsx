@@ -187,7 +187,7 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
             ))}
           </div>
 
-          {/* Share Card */}
+          {/* キャラ選択なし: うらら固定（相性鑑定はキャラ選択機能を持たないため） */}
           <ShareCard
             characterName="うらら"
             characterAvatar="/urara.png"
@@ -195,6 +195,7 @@ ${isGeneral ? `4. loveStory: 300〜400文字\n5. businessStory: 300〜400文字\
             userName={`${result.name1} × ${result.name2}`}
             topicLabel={COMPAT_TYPES.find(t => t.id === result.type)?.label || "相性占い"}
             oneWord={`相性スコア ${result.score.total}点`}
+            bookTitle={`${result.name1}と${result.name2}の星を重ねて`}
             siteUrl={typeof window !== "undefined" ? window.location.origin : ""}
           />
 

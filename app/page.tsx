@@ -44,10 +44,16 @@ const TOPIC_PROMPT_FOCUS: Record<TopicId, string> = {
   money: "金運分析。section1=お金に対する考え方と使い方、section2=収入を得る才能とスタイル、section3=金運を上げるための具体策",
 };
 
-type Step = "intro" | "char_select" | "ask_name" | "ask_birthday" | "ask_topic" | "loading" | "result";
+type Step = "intro" | "menu" | "char_select" | "ask_name" | "ask_birthday" | "ask_topic" | "loading" | "result";
+
+type DiagMode = "short" | "full" | "compatibility";
+
+// テストモード（full/compatibilityページと共有）
+const TEST_MODE = true;
 
 export default function HomePage() {
   const [step, setStep] = useState<Step>("intro");
+  const [diagMode, setDiagMode] = useState<DiagMode>("short");
   const [character, setCharacter] = useState<Character | null>(null);
   const [name, setName] = useState("");
   const [year, setYear] = useState("1995");
@@ -320,7 +326,7 @@ export default function HomePage() {
                   transition={{ delay: 2.5, duration: 0.5 }}
                   whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(201,169,110,0.25)" }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => { go("char_select"); }}
+                  onClick={() => { go("menu"); }}
                   className="mx-auto px-10 py-3.5 rounded text-sm font-medium border transition-all"
                   style={{
                     borderColor: "rgba(201,169,110,0.4)",
@@ -343,6 +349,92 @@ export default function HomePage() {
                   <span className="text-[10px] text-white tracking-wide">#うらら担</span>
                   <span className="text-[10px] text-white tracking-wide">#れき担</span>
                 </motion.div>
+              </motion.div>
+            )}
+
+            {/* ━━━ MENU — 鑑定メニュー選択 ━━━ */}
+            {step === "menu" && (
+              <motion.div key="menu" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: -30 }}>
+                <motion.p
+                  className="text-center text-sm mb-8 tracking-wide"
+                  style={{ color: "var(--text-secondary)" }}
+                  initial={{ y: -10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  …どの鑑定を受ける？
+                </motion.p>
+                <div className="space-y-4">
+                  {/* ショート鑑定（無料・最も目立つ） */}
+                  <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(201,169,110,0.15)" }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => { playTap(); setDiagMode("short"); go("char_select"); }}
+                    className="w-full p-5 rounded-lg text-left transition-all"
+                    style={{
+                      background: "rgba(44,32,24,0.7)",
+                      border: "1px solid rgba(201,169,110,0.3)",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-base font-bold" style={{ color: "var(--brass-light)", fontFamily: "var(--font-serif), serif" }}>ショート鑑定</span>
+                      <span className="text-sm font-bold px-3 py-0.5 rounded" style={{ background: "rgba(201,169,110,0.15)", color: "var(--brass-light)" }}>無料</span>
+                    </div>
+                    <p className="text-xs" style={{ color: "var(--text-secondary)" }}>3分であなたの本質を読み解く</p>
+                  </motion.button>
+
+                  {/* フル鑑定 */}
+                  <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => { playTap(); setDiagMode("full"); go("char_select"); }}
+                    className="w-full p-5 rounded-lg text-left transition-all"
+                    style={{
+                      background: "rgba(28,23,16,0.7)",
+                      border: "1px solid rgba(201,169,110,0.15)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-base font-bold" style={{ color: "var(--text-primary)", fontFamily: "var(--font-serif), serif" }}>フル鑑定</span>
+                      <span className="text-xs" style={{ color: "var(--brass)" }}>¥200</span>
+                    </div>
+                    <p className="text-xs" style={{ color: "var(--text-dim)" }}>6占術の完全レポート（6000文字超）</p>
+                    <p className="text-[10px] mt-1" style={{ color: "var(--text-dim)" }}>
+                      {TEST_MODE ? "※現在テスト公開中：無料でお試しいただけます" : "※決済画面に遷移します"}
+                    </p>
+                  </motion.button>
+
+                  {/* 相性鑑定 */}
+                  <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => { playTap(); setDiagMode("compatibility"); go("char_select"); }}
+                    className="w-full p-5 rounded-lg text-left transition-all"
+                    style={{
+                      background: "rgba(28,23,16,0.7)",
+                      border: "1px solid rgba(201,169,110,0.15)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-base font-bold" style={{ color: "var(--text-primary)", fontFamily: "var(--font-serif), serif" }}>相性鑑定</span>
+                      <span className="text-xs" style={{ color: "var(--brass)" }}>¥300</span>
+                    </div>
+                    <p className="text-xs" style={{ color: "var(--text-dim)" }}>2人の星を重ねて読む</p>
+                    <p className="text-[10px] mt-1" style={{ color: "var(--text-dim)" }}>
+                      {TEST_MODE ? "※現在テスト公開中：無料でお試しいただけます" : "※決済画面に遷移します"}
+                    </p>
+                  </motion.button>
+                </div>
               </motion.div>
             )}
 
