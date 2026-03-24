@@ -277,7 +277,7 @@ body {
 /* ━━━ Share card ━━━ */
 
 .share-card-bg {
-  background: linear-gradient(160deg, var(--library-dark) 0%, var(--library-mid) 50%, var(--background) 100%);
+  background: #1a1410;
 }
 
 /* ━━━ Door opening animation (legacy, kept for compatibility) ━━━ */

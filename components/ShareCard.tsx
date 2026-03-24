@@ -39,21 +39,27 @@ export default function ShareCard({
     setSaving(true);
     try {
       const domToImage = (await import("dom-to-image-more")).default;
-      // Use toBlob directly (avoids double-render issue with toPng→fetch)
-      const blob = await domToImage.toBlob(cardRef.current, {
-        bgcolor: "#110e09",
-        quality: 1,
+      const node = cardRef.current;
+      const width = node.offsetWidth;
+      const height = node.offsetHeight;
+      const scale = 3; // 3x for Retina / SNS quality
+
+      const blob = await domToImage.toBlob(node, {
+        width: width * scale,
+        height: height * scale,
         style: {
-          borderRadius: "0",
-          border: "none",
-          boxShadow: "none",
-          overflow: "hidden",
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          width: `${width}px`,
+          height: `${height}px`,
         },
+        bgcolor: "#1a1410",
+        quality: 1,
       });
 
       if (!blob) throw new Error("Failed to generate image");
 
-      // Try native share with image first (mobile)
+      // Try native share (mobile)
       if (navigator.share && navigator.canShare) {
         const file = new File([blob], "star-library-result.png", { type: "image/png" });
         const shareData = { files: [file], title: "星の図書館", text: `「${bookTitle || oneWord}」\n${userName}の星の記録、読んでもらった` };
@@ -81,85 +87,84 @@ export default function ShareCard({
 
   return (
     <div className="mb-8">
-      {/* The actual card — NO borders, NO box-shadow on the capture target */}
+      {/* ── Capture target: NO border, NO shadow, NO borderRadius ── */}
       <div
         ref={cardRef}
-        className="share-card-bg overflow-hidden relative"
-        style={{ padding: "28px 24px", borderRadius: "24px", boxShadow: "0 0 60px rgba(201,169,110,0.15), 0 4px 32px rgba(0,0,0,0.3)" }}
+        style={{
+          background: "#1a1410",
+          padding: "32px 28px",
+          /* Explicitly no border/shadow/radius — clean capture */
+        }}
       >
-        {/* Decorative symbol */}
-        <div
-          className="absolute top-4 right-4 text-6xl pointer-events-none select-none"
-          style={{ opacity: 0.03, color: "#c9a96e" }}
-        >
-          ✦
-        </div>
-
         {/* Header */}
-        <div className="flex items-center gap-2 mb-5">
-          <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.2)" }}>✦</span>
-          <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" as const }}>星の図書館</span>
-          <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.2)" }}>✦</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "24px" }}>
+          <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(201,169,110,0.3)" }}>✦</span>
+          <span style={{ fontSize: "10px", letterSpacing: "0.2em", color: "rgba(201,169,110,0.45)", fontFamily: "serif" }}>星の図書館</span>
+          <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(201,169,110,0.3)" }}>✦</span>
         </div>
 
-        {/* Character + name — use inline styles to avoid dom-to-image issues */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              overflow: "hidden",
-              flexShrink: 0,
-            }}
-          >
-            <Image src={characterAvatar} alt={characterName} width={72} height={72} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+        {/* Character + name */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+          <div style={{ width: "40px", height: "40px", borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>
+            <Image src={characterAvatar} alt={characterName} width={80} height={80} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
           </div>
           <div>
-            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", margin: 0 }}>{characterName}が読んだ</p>
-            <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.25)", margin: 0 }}>{userName}の{topicLabel}</p>
+            <p style={{ fontSize: "13px", color: "rgba(232,224,208,0.6)", margin: 0, fontFamily: "serif" }}>{characterName}が読んだ</p>
+            <p style={{ fontSize: "11px", color: "rgba(232,224,208,0.3)", margin: "2px 0 0 0" }}>{userName}の{topicLabel}</p>
           </div>
         </div>
 
         {/* Book title */}
         {bookTitle && (
-          <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginBottom: "8px", letterSpacing: "0.05em" }}>「{bookTitle}」</p>
+          <p style={{ fontSize: "12px", color: "rgba(201,169,110,0.5)", marginBottom: "12px", letterSpacing: "0.03em", fontFamily: "serif" }}>
+            「{bookTitle}」
+          </p>
         )}
 
         {/* Main oneWord */}
-        <div style={{ padding: "16px 0", marginBottom: "16px" }}>
-          <p
-            style={{
-              fontSize: "26px",
-              fontWeight: "bold",
-              lineHeight: 1.3,
-              fontFamily: "var(--font-serif), serif",
-              color: "#e8d5a8",
-              margin: 0,
-            }}
-          >
+        <div style={{ padding: "20px 0", marginBottom: "20px" }}>
+          <p style={{
+            fontSize: "28px",
+            fontWeight: "bold",
+            lineHeight: 1.4,
+            fontFamily: "'Shippori Mincho', serif",
+            color: "#e8d5a8",
+            margin: 0,
+          }}>
             {oneWord}
           </p>
         </div>
 
         {/* Data badges */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "11px", color: "rgba(255,255,255,0.35)", marginBottom: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "12px", color: "rgba(232,224,208,0.35)", marginBottom: "20px" }}>
           {westernSign && <span>♈ {westernSign}</span>}
           {kin && <span>KIN {kin}</span>}
           {glyph && <span>{glyph}</span>}
         </div>
 
-        {/* Divider — use background instead of border */}
-        <div style={{ height: "1px", width: "100%", marginBottom: "12px", background: "linear-gradient(90deg, transparent, rgba(201,169,110,0.25), transparent)" }} />
+        {/* Divider */}
+        <div style={{ height: "1px", width: "100%", marginBottom: "16px", background: "linear-gradient(90deg, transparent, rgba(201,169,110,0.2), transparent)" }} />
 
-        {/* CTA */}
+        {/* Footer */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.2)", margin: 0 }}>{siteUrl.replace("https://", "")}</p>
-          <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", margin: 0 }}>あなたの星も読んでみる →</p>
+          <p style={{ fontSize: "10px", color: "rgba(232,224,208,0.2)", margin: 0 }}>{siteUrl.replace("https://", "")}</p>
+          <p style={{ fontSize: "10px", color: "rgba(201,169,110,0.4)", margin: 0 }}>あなたの星も読んでみる →</p>
         </div>
       </div>
 
-      {/* Visual wrapper styles — applied via className, NOT style jsx (avoids dom-to-image capture issues) */}
+      {/* Display-only decoration (not captured) */}
+      <div
+        className="pointer-events-none -mt-px"
+        style={{
+          position: "relative",
+          top: "-100%",
+          height: "100%",
+          borderRadius: "16px",
+          boxShadow: "0 0 40px rgba(201,169,110,0.1), 0 4px 24px rgba(0,0,0,0.3)",
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+      />
 
       {/* Save / Share button */}
       <motion.button
@@ -167,9 +172,12 @@ export default function ShareCard({
         whileTap={{ scale: 0.97 }}
         onClick={handleSave}
         disabled={saving}
-        className="mt-3 w-full py-3 rounded-full text-sm font-medium text-white/70 transition-all disabled:opacity-40"
+        className="mt-3 w-full py-3 rounded text-sm font-medium transition-all disabled:opacity-40"
         style={{
-          background: "rgba(201,169,110,0.08)",
+          background: "rgba(201,169,110,0.12)",
+          border: "1px solid rgba(201,169,110,0.2)",
+          color: "var(--brass-light)",
+          fontFamily: "var(--font-ui), sans-serif",
         }}
       >
         {saving ? "…準備中" : "カードを保存"}
