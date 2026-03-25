@@ -66,18 +66,7 @@ export default function ShareCard({
 
       if (!blob) throw new Error("Failed to generate image");
 
-      // モバイルシェア（1回だけ）
-      if (typeof navigator !== "undefined" && navigator.share && navigator.canShare) {
-        const file = new File([blob], "star-library-result.png", { type: "image/png" });
-        const shareData = { files: [file], title: "星の図書館", text: `「${bookTitle || oneWord}」\n${userName}の星の記録、読んでもらった` };
-        if (navigator.canShare(shareData)) {
-          await navigator.share(shareData);
-          setSaving(false);
-          return;
-        }
-      }
-
-      // フォールバック: ダウンロード（1枚だけ）
+      // ダウンロードのみ（1枚だけ）。navigator.shareは2枚保存の原因になるため使わない
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -85,7 +74,7 @@ export default function ShareCard({
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {
       // ignore
     }

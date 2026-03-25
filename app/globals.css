@@ -428,10 +428,36 @@ body {
   letter-spacing: 0.3em;
 }
 
-/* Print styles */
+/* Print styles — PDF出力時に読みやすいコントラスト */
 @media print {
-  body { background: #fff; }
+  body { background: #fff !important; color: #1a1a1a !important; }
+  main { background: #fff !important; }
   .no-print { display: none !important; }
+
+  /* ダーク背景の要素を白背景に */
+  [style*="background"] { background: transparent !important; }
+
+  /* テキストを濃い色に */
+  * {
+    color: #1a1a1a !important;
+    -webkit-text-fill-color: #1a1a1a !important;
+    border-color: #ddd !important;
+  }
+
+  /* 見出しを強調 */
+  h1, h2, h3 { color: #000 !important; -webkit-text-fill-color: #000 !important; }
+
+  /* 占術ラベルにアクセント */
+  .text-\[\#c9a96e\],
+  [style*="color: rgba(201"] { color: #8B6914 !important; -webkit-text-fill-color: #8B6914 !important; }
+
+  /* border-leftの装飾を印刷向けに */
+  [class*="border-l"] { border-left-color: #8B6914 !important; }
+
+  /* 背景エフェクトを非表示 */
+  canvas, [class*="StarField"], [class*="GrainOverlay"], [class*="LibraryBg"] {
+    display: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

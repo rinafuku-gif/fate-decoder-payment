@@ -318,7 +318,7 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
     ];
     return (
       <main className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: "#0a0e1a" }}>
-        <LibraryBg scene="main" />
+        <LibraryBg scene="aisle" />
         <StarField />
         <GrainOverlay />
         <div className="relative z-10 text-center px-6">
@@ -350,7 +350,7 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
   if (screen === "result") {
     return (
       <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
-        <LibraryBg scene="main" />
+        <LibraryBg scene="desk" />
         <StarField />
         <GrainOverlay />
         <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
