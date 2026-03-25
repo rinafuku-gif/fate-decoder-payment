@@ -38,16 +38,27 @@ export default function ShareCard({
     if (!cardRef.current || saving) return;
     setSaving(true);
     try {
-      // html2canvasに切り替え（dom-to-image-moreの枠線問題を根本解決）
       const html2canvas = (await import("html2canvas")).default;
-      const canvas = await html2canvas(cardRef.current, {
+      const node = cardRef.current;
+      // キャプチャ前にborderを強制除去（念のため）
+      const origStyle = node.getAttribute("style") || "";
+      node.style.border = "none";
+      node.style.outline = "none";
+      node.style.boxShadow = "none";
+      node.style.borderRadius = "0";
+
+      const canvas = await html2canvas(node, {
         backgroundColor: "#1a1410",
         scale: 3,
         useCORS: true,
         logging: false,
-        // 枠線の原因: html2canvasはデフォルトでborderを含む。
-        // キャプチャ対象にborderがないことを保証する（下のstyleで明示）
+        removeContainer: true,
+        windowWidth: node.offsetWidth,
+        windowHeight: node.offsetHeight,
       });
+
+      // スタイルを復元
+      node.setAttribute("style", origStyle);
 
       const blob = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob((b) => resolve(b), "image/png", 1)

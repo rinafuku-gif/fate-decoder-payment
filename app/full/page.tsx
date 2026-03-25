@@ -12,6 +12,7 @@ import FadeIn from "@/components/FadeIn";
 import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
 import ShareCard from "@/components/ShareCard";
+import FortuneCards from "@/components/FortuneCards";
 
 function LoadingText({ stages }: { stages: { text: string; delay: number }[] }) {
   const [index, setIndex] = useState(0);
@@ -394,33 +395,8 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
             siteUrl={typeof window !== "undefined" ? window.location.origin : ""}
           />
 
-          {/* 6占術データ — カード形式（ショート鑑定と同じmotion.div） */}
-          <p className="text-[10px] text-white/25 tracking-widest text-center mb-3 uppercase">— 6占術データ —</p>
-          <div className="grid grid-cols-3 gap-2 mb-6">
-            {resultData && [
-              { label: "星座", value: resultData.western.sign },
-              { label: "KIN", value: resultData.maya.kin },
-              { label: "LP", value: resultData.numerology.lp },
-              { label: "紋章", value: resultData.maya.glyph },
-              { label: "中心星", value: resultData.bazi.weapon },
-              { label: "宿曜", value: resultData.sukuyo },
-              { label: "日柱", value: resultData.sanmeigaku.day },
-              { label: "日干", value: resultData.bazi.stem },
-              { label: "音", value: resultData.maya.tone },
-            ].map((d, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + i * 0.05 }}
-                className="text-center p-2 rounded-xl"
-                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,169,110,0.1)" }}
-              >
-                <p className="text-[10px] text-white/25">{d.label}</p>
-                <p className="text-xs font-medium text-white/80">{d.value}</p>
-              </motion.div>
-            ))}
-          </div>
+          {/* 6占術データ — タップで詳細が見れるカード形式 */}
+          {resultData && <FortuneCards data={resultData} />}
 
           {/* 司書のひとこと */}
           <div className="flex items-start gap-3 mb-6">
@@ -440,18 +416,19 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
           <div dangerouslySetInnerHTML={{ __html: resultHtml }} />
 
           {/* ボタン */}
-          <div className="flex gap-3 mt-6 no-print">
-            <button
-              onClick={() => router.push(ref ? `/?ref=${ref}` : "/")}
-              className="flex-1 py-2.5 rounded-full border border-white/10 text-sm text-white/40 hover:bg-white/5 transition-colors"
-            >
-              トップへ戻る
-            </button>
+          <div className="space-y-3 mt-6 no-print">
             <button
               onClick={() => window.print()}
-              className="flex-1 py-2.5 rounded-full border border-[rgba(201,169,110,0.3)] text-sm text-[#c9a96e] hover:bg-[rgba(201,169,110,0.05)] transition-colors"
+              className="w-full py-3 rounded-full text-sm font-medium transition-all"
+              style={{ background: "rgba(201,169,110,0.15)", border: "1px solid rgba(201,169,110,0.3)", color: "#c9a96e" }}
             >
-              印刷 / PDF保存
+              全文をPDF保存
+            </button>
+            <button
+              onClick={() => router.push(ref ? `/?ref=${ref}` : "/")}
+              className="w-full py-2.5 rounded-full border border-white/10 text-sm text-white/40 hover:bg-white/5 transition-colors"
+            >
+              トップへ戻る
             </button>
           </div>
         </div>
