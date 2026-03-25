@@ -122,12 +122,28 @@ export default function FullPage() {
   // 結果画面でページ離脱時に確認
   useEffect(() => {
     if (screen !== "result") return;
-    const handler = (e: BeforeUnloadEvent) => {
+    // タブ閉じ/リロード対策
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = "ダウンロードはお済みですか？ページを離れると結果が失われます。";
+      e.returnValue = "ダウンロードはお済みですか？";
     };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
+    // ブラウザバック対策: history.pushStateで戻るボタンを捕捉
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      const ok = window.confirm("もうダウンロードはし終わった？\n\n「OK」→ ページを離れる\n「キャンセル」→ 戻って保存する");
+      if (ok) {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        window.history.back();
+      } else {
+        window.history.pushState(null, "", window.location.href);
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, [screen]);
 
   const currentStepIndex = STEPS.indexOf(step);
@@ -443,7 +459,11 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
               全文をPDF保存
             </button>
             <button
-              onClick={() => router.push(ref ? `/?ref=${ref}` : "/")}
+              onClick={() => {
+                if (window.confirm("もうダウンロードはし終わった？\n\n「OK」→ トップへ移動\n「キャンセル」→ 戻って保存する")) {
+                  router.push(ref ? `/?ref=${ref}` : "/");
+                }
+              }}
               className="w-full py-2.5 rounded-full border border-white/10 text-sm text-white/40 hover:bg-white/5 transition-colors"
             >
               トップへ戻る
