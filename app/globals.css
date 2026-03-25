@@ -428,8 +428,13 @@ body {
   letter-spacing: 0.3em;
 }
 
+/* 占術カードの画面/印刷切り替え */
+.fortune-card-print-only { display: none; }
+
 /* Print styles — PDF出力時に読みやすいコントラスト */
 @media print {
+  .fortune-card-screen-only { display: none !important; }
+  .fortune-card-print-only { display: block !important; }
   body { background: #fff !important; color: #1a1a1a !important; }
   main { background: #fff !important; }
   .no-print { display: none !important; }

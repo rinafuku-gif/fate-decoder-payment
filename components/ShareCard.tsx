@@ -103,14 +103,14 @@ export default function ShareCard({
           <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(201,169,110,0.3)" }}>✦</span>
         </div>
 
-        {/* Character + name */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-          <div style={{ width: "40px", height: "40px", borderRadius: "50%", overflow: "hidden", flexShrink: 0 }}>
-            <Image src={characterAvatar} alt={characterName} width={80} height={80} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+        {/* Character */}
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
+          <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, border: "1.5px solid rgba(201,169,110,0.3)" }}>
+            <Image src={characterAvatar} alt={characterName} width={160} height={160} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
           </div>
           <div>
-            <p style={{ fontSize: "13px", color: "rgba(232,224,208,0.6)", margin: 0, fontFamily: "serif" }}>{characterName}が読んだ</p>
-            <p style={{ fontSize: "11px", color: "rgba(232,224,208,0.3)", margin: "2px 0 0 0" }}>{userName}の{topicLabel}</p>
+            <p style={{ fontSize: "15px", color: "rgba(232,224,208,0.7)", margin: 0, fontFamily: "serif", fontWeight: "bold" }}>{characterName}が読んだ</p>
+            <p style={{ fontSize: "12px", color: "rgba(232,224,208,0.35)", margin: "4px 0 0 0" }}>{userName}の{topicLabel}</p>
           </div>
         </div>
 

@@ -171,8 +171,9 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
     );
   }
 
-  // キャラ選択画面
+  // 相性鑑定はキャラ選択なし — うらら＆れきの2人が掛け合い
   if (screen === "select") {
+    // 相性鑑定は自動的に2人の司書が担当する演出
     return (
       <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
         <LibraryBg scene="main" />
@@ -183,42 +184,46 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
           <FadeIn delay={0.2}>
             <div className="text-center mb-6">
               <h1 className="text-2xl font-bold mb-1 text-white" style={{ fontFamily: "var(--font-serif), serif" }}>相性鑑定</h1>
-              <p className="text-xs text-white/40">…どちらの司書に読んでもらう？</p>
+              <p className="text-xs text-white/40">…2人の司書が掛け合いで読み解きます</p>
             </div>
           </FadeIn>
-          <div className="grid grid-cols-2 gap-4">
+          {/* うらら＆れきの2人表示 */}
+          <div className="flex justify-center gap-6 mb-6">
             {(["urara", "reki"] as Character[]).map((c, i) => {
               const cfg = CHARACTER_CONFIG[c];
-              const fullImg = c === "urara" ? "/urara-full.png" : "/reki-full.png";
               return (
-                <motion.button
+                <motion.div
                   key={c}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + i * 0.2 }}
-                  whileHover={{ scale: 1.03, boxShadow: "0 10px 40px rgba(201,169,110,0.15)" }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => { setCharacter(c); setScreen("input"); }}
-                  className="rounded-2xl overflow-hidden text-center"
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,169,110,0.2)" }}
+                  className="text-center"
                 >
                   <motion.div
-                    className="w-full aspect-square overflow-hidden"
+                    className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-2"
+                    style={{ border: "2px solid rgba(201,169,110,0.4)", boxShadow: "0 0 20px rgba(201,169,110,0.15)" }}
                     animate={{ y: [0, -4, 0] }}
-                    transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
+                    transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.8 }}
                   >
-                    <Image src={fullImg} alt={cfg.name} width={382} height={382} className="object-cover w-full h-full" />
+                    <Image src={cfg.avatar} alt={cfg.name} width={96} height={96} className="object-cover w-full h-full" />
                   </motion.div>
-                  <div className="p-3">
-                    <p className="text-sm font-bold text-white">{cfg.name}</p>
-                    <p className="text-[11px] text-white/40 mt-0.5">{cfg.description}</p>
-                  </div>
-                </motion.button>
+                  <p className="text-sm font-bold text-white">{cfg.name}</p>
+                  <p className="text-[10px] text-white/30">{cfg.description}</p>
+                </motion.div>
               );
             })}
           </div>
-          <FadeIn delay={0.8}>
-            <p className="text-center text-[11px] text-white/20 mt-6">¥200 — 2人の星を重ねて読む</p>
+          <FadeIn delay={0.7}>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => { setCharacter("urara"); setScreen("input"); }}
+              className="w-full py-3.5 rounded-full text-sm font-medium text-white transition-all"
+              style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.6), rgba(201,169,110,0.3))", border: "1px solid rgba(201,169,110,0.3)" }}
+            >
+              2人に読んでもらう
+            </motion.button>
+            <p className="text-center text-[11px] text-white/20 mt-4">¥200 — 2人の星を重ねて読む</p>
           </FadeIn>
         </div>
       </main>
@@ -226,24 +231,59 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
   }
 
   if (screen === "loading") {
+    const uraraConfig = CHARACTER_CONFIG.urara;
+    const rekiConfig = CHARACTER_CONFIG.reki;
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
-        <div className="text-center">
-          <div className="w-10 h-10 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin mx-auto mb-4" />
+      <main className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: "#0a0e1a" }}>
+        <LibraryBg scene="aisle" />
+        <StarField />
+        <GrainOverlay />
+        <div className="relative z-10 text-center px-6">
+          {/* 2人のアバターが並ぶ */}
+          <div className="flex justify-center gap-4 mb-6">
+            <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2" style={{ borderColor: "var(--gold)", boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}>
+                <Image src={uraraConfig.avatar} alt="うらら" width={64} height={64} className="object-cover w-full h-full" />
+              </div>
+            </motion.div>
+            <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}>
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2" style={{ borderColor: "var(--gold)", boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}>
+                <Image src={rekiConfig.avatar} alt="れき" width={64} height={64} className="object-cover w-full h-full" />
+              </div>
+            </motion.div>
+          </div>
           <p className="text-sm text-white/60">…ふたりの本、見比べてくるね</p>
-          <p className="text-xs text-white/30 mt-1">30〜60秒ほどお待ちください</p>
+          <p className="text-xs text-white/25 mt-1">30〜60秒ほどお待ちください</p>
+          <div className="flex justify-center gap-1 mt-6">
+            {[0, 1, 2].map((i) => (
+              <motion.div key={i} className="w-2 h-2 rounded-full" style={{ background: "var(--gold)" }} animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }} transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }} />
+            ))}
+          </div>
         </div>
       </main>
     );
   }
 
   if (screen === "result" && result) {
+    const uraraConfig = CHARACTER_CONFIG.urara;
+    const rekiConfig = CHARACTER_CONFIG.reki;
     return (
-      <main className="min-h-screen relative" style={{ background: "var(--background)" }}>
+      <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
         <LibraryBg scene="desk" />
+        <StarField />
         <GrainOverlay />
-        <div className="relative z-20 max-w-lg mx-auto px-5 py-8">
+        <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
+          {/* 2人の司書ヘッダー */}
           <header className="text-center mb-8">
+            <div className="flex justify-center gap-3 mb-3">
+              <div className="w-14 h-14 rounded-full overflow-hidden" style={{ border: "1.5px solid rgba(201,169,110,0.5)", boxShadow: "0 0 15px rgba(201,169,110,0.15)" }}>
+                <Image src={uraraConfig.avatar} alt="うらら" width={56} height={56} className="object-cover w-full h-full" />
+              </div>
+              <div className="w-14 h-14 rounded-full overflow-hidden" style={{ border: "1.5px solid rgba(201,169,110,0.5)", boxShadow: "0 0 15px rgba(201,169,110,0.15)" }}>
+                <Image src={rekiConfig.avatar} alt="れき" width={56} height={56} className="object-cover w-full h-full" />
+              </div>
+            </div>
+            <p className="text-xs text-white/40 mb-1">うらら＆れきが読み解いた</p>
             <p className="text-xs text-[#c9a96e] tracking-widest mb-1">相性鑑定</p>
             <h1 className="text-xl font-bold text-white/90">{result.name1} × {result.name2}</h1>
             <div className="mt-3 inline-block px-6 py-2 rounded-full" style={{ background: "rgba(201,169,110,0.1)", border: "1px solid rgba(201,169,110,0.3)" }}>
@@ -272,27 +312,47 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
             ))}
           </div>
 
+          {/* 掛け合い形式: うらら→れき→うらら… */}
           {[
-            { title: "引き合うもの", text: result.story.attraction },
-            { title: "ふたりの強み", text: result.story.strengths },
-            { title: "気をつけたいこと", text: result.story.challenges },
-            { title: "アドバイス", text: result.story.advice },
+            { title: "引き合うもの", text: result.story.attraction, speaker: "urara" as Character },
+            { title: "ふたりの強み", text: result.story.strengths, speaker: "reki" as Character },
+            { title: "気をつけたいこと", text: result.story.challenges, speaker: "urara" as Character },
+            { title: "アドバイス", text: result.story.advice, speaker: "reki" as Character },
             ...(result.type === "general" ? [
-              { title: "恋愛の相性", text: result.story.loveStory },
-              { title: "仕事の相性", text: result.story.businessStory },
-              { title: "友情の相性", text: result.story.friendStory },
+              { title: "恋愛の相性", text: result.story.loveStory, speaker: "urara" as Character },
+              { title: "仕事の相性", text: result.story.businessStory, speaker: "reki" as Character },
+              { title: "友情の相性", text: result.story.friendStory, speaker: "urara" as Character },
             ] : []),
-          ].filter(s => s.text).map((section, i) => (
-            <div key={i} className="mb-6 border-l-3 border-[rgba(201,169,110,0.3)] pl-4">
-              <h3 className="text-sm font-bold text-white/80 mb-2">{section.title}</h3>
-              <p className="text-sm text-white/60 leading-relaxed whitespace-pre-line">{section.text}</p>
-            </div>
-          ))}
+          ].filter(s => s.text).map((section, i) => {
+            const spkConfig = CHARACTER_CONFIG[section.speaker];
+            const isRight = section.speaker === "reki";
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: isRight ? 10 : -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + i * 0.1 }}
+                className="mb-5"
+              >
+                <div className={`flex gap-2.5 ${isRight ? "flex-row-reverse" : ""}`}>
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 mt-1" style={{ border: "1px solid rgba(201,169,110,0.3)" }}>
+                    <Image src={spkConfig.avatar} alt={spkConfig.name} width={32} height={32} className="object-cover w-full h-full" />
+                  </div>
+                  <div className={`flex-1 ${isRight ? "text-right" : ""}`}>
+                    <p className="text-[10px] text-white/30 mb-1">{spkConfig.name} — {section.title}</p>
+                    <div className={`inline-block ${isRight ? "text-left" : ""} bg-white/5 border border-white/10 rounded-2xl ${isRight ? "rounded-tr-sm" : "rounded-tl-sm"} px-4 py-3`}>
+                      <p className="text-sm text-white/70 leading-relaxed whitespace-pre-line">{section.text}</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
 
           <ShareCard
-            characterName={CHARACTER_CONFIG[character || "urara"].name}
-            characterAvatar={CHARACTER_CONFIG[character || "urara"].avatar}
-            characterId={character || "urara"}
+            characterName="うらら＆れき"
+            characterAvatar={uraraConfig.avatar}
+            characterId="urara"
             userName={`${result.name1} × ${result.name2}`}
             topicLabel="相性鑑定"
             oneWord={result.story.oneWord || `相性${result.score.total}点`}

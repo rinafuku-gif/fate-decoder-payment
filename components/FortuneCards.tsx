@@ -112,7 +112,7 @@ export default function FortuneCards({ data }: FortuneCardsProps) {
             </div>
 
             {/* 画面表示: タップで展開 */}
-            <div className="print:hidden">
+            <div className="fortune-card-screen-only">
               <AnimatePresence>
                 {expanded === card.id && (
                   <motion.div
@@ -138,7 +138,7 @@ export default function FortuneCards({ data }: FortuneCardsProps) {
               </AnimatePresence>
             </div>
             {/* PDF出力: 常に展開 */}
-            <div className="hidden print:block mt-3 pt-3" style={{ borderTop: "1px solid rgba(201,169,110,0.1)" }}>
+            <div className="fortune-card-print-only mt-3 pt-3" style={{ borderTop: "1px solid rgba(201,169,110,0.1)" }}>
               <p className="text-[10px] text-white/30 mb-2">{card.description}</p>
               <div className="grid grid-cols-2 gap-1.5">
                 {card.items.map((item) => (

@@ -356,8 +356,8 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
         <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
           {/* 司書ヘッダー */}
           <header className="text-center mb-6">
-            <div className="w-14 h-14 rounded-full overflow-hidden mx-auto mb-2" style={{ border: "1.5px solid rgba(201,169,110,0.5)", boxShadow: "0 0 20px rgba(201,169,110,0.15)" }}>
-              <Image src={charConfig.avatar} alt={charConfig.name} width={112} height={112} className="object-cover w-full h-full" />
+            <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-3" style={{ border: "2px solid rgba(201,169,110,0.5)", boxShadow: "0 0 30px rgba(201,169,110,0.2)" }}>
+              <Image src={charConfig.avatar} alt={charConfig.name} width={160} height={160} className="object-cover w-full h-full" />
             </div>
             <p className="text-xs text-white/40 mb-1">{charConfig.name}が読み解いた</p>
             <h1 className="text-lg font-bold text-white">{form.name} のフル鑑定</h1>
