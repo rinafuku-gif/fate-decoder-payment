@@ -38,36 +38,24 @@ export default function ShareCard({
     if (!cardRef.current || saving) return;
     setSaving(true);
     try {
-      const domToImage = (await import("dom-to-image-more")).default;
-      const node = cardRef.current;
-      const width = node.offsetWidth;
-      const height = node.offsetHeight;
-      const scale = 3;
-
-      // 枠線問題の根本対策: filter関数で不要な要素を除外
-      const blob = await domToImage.toBlob(node, {
-        width: width * scale,
-        height: height * scale,
-        style: {
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          width: `${width}px`,
-          height: `${height}px`,
-        },
-        bgcolor: "#1a1410",
-        quality: 1,
-        filter: (el: Element) => {
-          // ShareCard外の要素やdecoration要素を除外
-          if (el instanceof HTMLElement) {
-            if (el.dataset?.noncapture === "true") return false;
-          }
-          return true;
-        },
+      // html2canvasに切り替え（dom-to-image-moreの枠線問題を根本解決）
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: "#1a1410",
+        scale: 3,
+        useCORS: true,
+        logging: false,
+        // 枠線の原因: html2canvasはデフォルトでborderを含む。
+        // キャプチャ対象にborderがないことを保証する（下のstyleで明示）
       });
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob((b) => resolve(b), "image/png", 1)
+      );
 
       if (!blob) throw new Error("Failed to generate image");
 
-      // Try native share (mobile) — 1回だけ保存/共有する
+      // モバイルシェア（1回だけ）
       if (typeof navigator !== "undefined" && navigator.share && navigator.canShare) {
         const file = new File([blob], "star-library-result.png", { type: "image/png" });
         const shareData = { files: [file], title: "星の図書館", text: `「${bookTitle || oneWord}」\n${userName}の星の記録、読んでもらった` };
@@ -78,7 +66,7 @@ export default function ShareCard({
         }
       }
 
-      // Fallback: download（1枚だけ）
+      // フォールバック: ダウンロード（1枚だけ）
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -95,12 +83,16 @@ export default function ShareCard({
 
   return (
     <div className="mb-8">
-      {/* ── Capture target ── */}
+      {/* キャプチャ対象: border/outline/shadow/radius 一切なし */}
       <div
         ref={cardRef}
         style={{
           background: "#1a1410",
           padding: "32px 28px",
+          border: "none",
+          outline: "none",
+          boxShadow: "none",
+          borderRadius: "0",
           overflow: "hidden",
         }}
       >
@@ -160,7 +152,7 @@ export default function ShareCard({
         </div>
       </div>
 
-      {/* Save / Share button — 1つだけ */}
+      {/* 保存ボタン — 1つだけ */}
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.97 }}

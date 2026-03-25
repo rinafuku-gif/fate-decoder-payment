@@ -13,6 +13,7 @@
     "dom-to-image-more": "^3.7.2",
     "drizzle-orm": "^0.45.1",
     "framer-motion": "^12.38.0",
+    "html2canvas": "^1.4.1",
     "jose": "^6.2.2",
     "next": "16.2.1",
     "qrcode": "^1.5.4",

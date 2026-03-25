@@ -13,6 +13,18 @@ import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
 import ShareCard from "@/components/ShareCard";
 
+function LoadingText({ stages }: { stages: { text: string; delay: number }[] }) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    const timers = stages.map((stage, i) => {
+      if (i === 0) return null;
+      return setTimeout(() => setIndex(i), stage.delay);
+    });
+    return () => timers.forEach((t) => t && clearTimeout(t));
+  }, [stages]);
+  return <p className="text-sm text-white/80">{stages[index]?.text}</p>;
+}
+
 // テストモード: trueなら決済なしで鑑定可能。ローンチ時にfalseにする
 // TODO: 本番リリース前にfalseに変更すること
 const TEST_MODE = true;
@@ -205,33 +217,9 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
       };
 
       // #6修正: 6占術をグループラベル付きで表示
+      // HTML結果（占術データはJSXで表示するのでHTML内には含めない）
       const html = `
-        <div class="max-w-lg mx-auto px-5 py-8">
-          <header class="text-center mb-6">
-            <p class="text-xs text-[#c9a96e] tracking-widest mb-1">星の図書館</p>
-            <h1 class="text-xl font-bold text-white/90">${safeName} さんへのフル鑑定</h1>
-            ${form.concern ? `<p class="text-xs text-white/40 mt-2">「${escapeHtml(form.concern)}」</p>` : ""}
-          </header>
-
-          <p class="text-[10px] text-[#c9a96e]/60 tracking-widest text-center mb-3 uppercase">— 6占術データ —</p>
-          <div class="space-y-2 mb-6">
-            ${[
-              { label: "西洋占星術", items: [{ l: "星座", v: data.western.sign }] },
-              { label: "マヤ暦", items: [{ l: "KIN", v: data.maya.kin }, { l: "紋章", v: data.maya.glyph }, { l: "音", v: data.maya.tone }] },
-              { label: "数秘術", items: [{ l: "ライフパス", v: data.numerology.lp }] },
-              { label: "算命学", items: [{ l: "中心星", v: data.bazi.weapon }] },
-              { label: "宿曜", items: [{ l: "宿", v: data.sukuyo }] },
-              { label: "四柱推命", items: [{ l: "日柱", v: data.sanmeigaku.day }, { l: "日干", v: data.bazi.stem }] },
-            ].map(group => `
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] text-white/30 w-16 flex-shrink-0 text-right">${group.label}</span>
-                <div class="flex gap-1.5 flex-wrap">
-                  ${group.items.map(d => `<span class="px-2.5 py-1 rounded-full bg-white/5 border border-[rgba(201,169,110,0.15)] text-[11px] text-white/60"><span class="text-white/30">${d.l}</span> ${d.v}</span>`).join("")}
-                </div>
-              </div>
-            `).join("")}
-          </div>
-
+        <div>
           ${renderSection(story.prologue)}
           ${story.chapters.map((c: { tag?: string; title?: string; text?: string }) => renderSection(c)).join("")}
           <div class="mb-6 border-l-3 border-[rgba(201,169,110,0.5)] pl-4">
@@ -240,7 +228,6 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
             <p class="text-sm text-white/60 leading-relaxed whitespace-pre-line">${escapeHtml(story.final.text || "")}</p>
             ${story.final.magic ? `<div class="mt-3 p-3 rounded-xl bg-[rgba(201,169,110,0.08)] border border-[rgba(201,169,110,0.2)] text-center"><p class="text-[10px] text-[#c9a96e] mb-1">今日からできるアクション</p><p class="text-xs font-medium text-white/70">${escapeHtml(story.final.magic)}</p></div>` : ""}
           </div>
-          <footer class="text-center text-xs text-white/20 mt-8">星の図書館 — Full Reading</footer>
         </div>
       `;
 
@@ -321,47 +308,78 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
   }
 
   if (screen === "loading") {
+    const fullImg = charId === "urara" ? "/urara-full.png" : "/reki-full.png";
+    const stages = [
+      { text: charId === "reki" ? "…見てくるから少し待って" : "…ちょっと待ってて。図書館で探してくる", delay: 0 },
+      { text: "…星の記録を照合してる", delay: 5000 },
+      { text: "…もう少しだけ待ってて。かなり長い記録になりそう", delay: 12000 },
+      { text: "…あと少し。大事なところを丁寧に読んでるから", delay: 20000 },
+    ];
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
+      <main className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: "#0a0e1a" }}>
         <LibraryBg scene="main" />
+        <StarField />
         <GrainOverlay />
-        <div className="relative z-20 text-center">
-          <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-4 border border-[rgba(201,169,110,0.2)]">
-            <Image src={charConfig.avatar} alt={charConfig.name} width={48} height={48} className="object-cover" />
+        <div className="relative z-10 text-center px-6">
+          <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
+            <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-6 border-2" style={{ borderColor: "var(--gold)", boxShadow: "0 0 30px rgba(201,169,110,0.3)" }}>
+              <Image src={fullImg} alt={charConfig.name} width={192} height={192} className="object-cover w-full h-full" />
+            </div>
+          </motion.div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+            <LoadingText stages={stages} />
+          </motion.div>
+          <p className="text-xs text-white/20 mt-2">フル鑑定は30〜60秒ほどかかります</p>
+          <div className="flex justify-center gap-1 mt-6">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-2 h-2 rounded-full"
+                style={{ background: "var(--gold)" }}
+                animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
+              />
+            ))}
           </div>
-          <div className="w-8 h-8 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-white/60">…あなたの星の記録を読み解いています</p>
-          <p className="text-xs text-white/30 mt-1">30〜60秒ほどお待ちください</p>
         </div>
       </main>
     );
   }
 
-  // #5修正: 結果画面にも司書を表示
   if (screen === "result") {
     return (
-      <main className="min-h-screen relative" style={{ background: "var(--background)" }}>
-        <LibraryBg scene="desk" />
+      <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
+        <LibraryBg scene="main" />
+        <StarField />
         <GrainOverlay />
-
-        {/* 司書の存在を結果画面でも維持 */}
-        <div className="relative z-20 max-w-lg mx-auto px-5 pt-8 pb-4">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-[rgba(201,169,110,0.2)]">
-              <Image src={charConfig.avatar} alt={charConfig.name} width={40} height={40} className="object-cover" />
+        <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
+          {/* 司書ヘッダー */}
+          <header className="text-center mb-6">
+            <div className="w-14 h-14 rounded-full overflow-hidden mx-auto mb-2" style={{ border: "1.5px solid rgba(201,169,110,0.5)", boxShadow: "0 0 20px rgba(201,169,110,0.15)" }}>
+              <Image src={charConfig.image} alt={charConfig.name} width={112} height={112} className="object-cover w-full h-full" />
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 flex-1">
-              <p className="text-sm text-white/70 leading-relaxed">
-                {charId === "reki"
-                  ? `…${form.name}の記録、全部読んできた。長いけど、まあ面白いから読んでみて`
-                  : `…${form.name}の星の記録、全部読んできたよ。長くなったけど、大事なことが書いてあるから最後まで読んでみて`}
-              </p>
-            </div>
-          </div>
-        </div>
+            <p className="text-xs text-white/40 mb-1">{charConfig.name}が読み解いた</p>
+            <h1 className="text-lg font-bold text-white">{form.name} のフル鑑定</h1>
+          </header>
 
-        <div className="relative z-20" dangerouslySetInnerHTML={{ __html: resultHtml }} />
-        <div className="relative z-20 max-w-lg mx-auto px-5 pb-8">
+          {/* oneWord — リッチ表示 */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 100 }}
+            className="text-center mb-6 p-5 rounded-2xl"
+            style={{ background: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)" }}
+          >
+            <p className="text-[11px] text-white/30 mb-1 tracking-widest uppercase">フル鑑定</p>
+            <p className="text-xl font-bold" style={{
+              fontFamily: "var(--font-serif), serif",
+              background: "linear-gradient(135deg, #fff, var(--gold))",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}>{resultMeta.oneWord}</p>
+          </motion.div>
+
+          {/* ShareCard */}
           <ShareCard
             characterName={charConfig.name}
             characterAvatar={charConfig.avatar}
@@ -375,12 +393,57 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
             glyph={resultData?.maya?.glyph}
             siteUrl={typeof window !== "undefined" ? window.location.origin : ""}
           />
-        </div>
-        <div className="max-w-lg mx-auto px-5 pb-8 no-print">
-          <div className="flex gap-3">
+
+          {/* 6占術データ — カード形式（ショート鑑定と同じmotion.div） */}
+          <p className="text-[10px] text-white/25 tracking-widest text-center mb-3 uppercase">— 6占術データ —</p>
+          <div className="grid grid-cols-3 gap-2 mb-6">
+            {resultData && [
+              { label: "星座", value: resultData.western.sign },
+              { label: "KIN", value: resultData.maya.kin },
+              { label: "LP", value: resultData.numerology.lp },
+              { label: "紋章", value: resultData.maya.glyph },
+              { label: "中心星", value: resultData.bazi.weapon },
+              { label: "宿曜", value: resultData.sukuyo },
+              { label: "日柱", value: resultData.sanmeigaku.day },
+              { label: "日干", value: resultData.bazi.stem },
+              { label: "音", value: resultData.maya.tone },
+            ].map((d, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + i * 0.05 }}
+                className="text-center p-2 rounded-xl"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,169,110,0.1)" }}
+              >
+                <p className="text-[10px] text-white/25">{d.label}</p>
+                <p className="text-xs font-medium text-white/80">{d.value}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* 司書のひとこと */}
+          <div className="flex items-start gap-3 mb-6">
+            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0" style={{ border: "1px solid rgba(201,169,110,0.3)" }}>
+              <Image src={charConfig.avatar} alt={charConfig.name} width={32} height={32} className="object-cover w-full h-full" />
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 flex-1">
+              <p className="text-sm text-white/60 leading-relaxed">
+                {charId === "reki"
+                  ? `…${form.name}の記録、全部読んできた。長いけど、まあ面白いから読んでみて`
+                  : `…${form.name}の星の記録、全部読んできたよ。大事なことが書いてあるから最後まで読んでみて`}
+              </p>
+            </div>
+          </div>
+
+          {/* 本文 */}
+          <div dangerouslySetInnerHTML={{ __html: resultHtml }} />
+
+          {/* ボタン */}
+          <div className="flex gap-3 mt-6 no-print">
             <button
               onClick={() => router.push(ref ? `/?ref=${ref}` : "/")}
-              className="flex-1 py-2.5 rounded-full border border-white/10 text-sm text-white/50 hover:bg-white/5 transition-colors"
+              className="flex-1 py-2.5 rounded-full border border-white/10 text-sm text-white/40 hover:bg-white/5 transition-colors"
             >
               トップへ戻る
             </button>
@@ -403,10 +466,11 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
   const selectClass = "px-3 py-3 rounded-xl bg-white/8 border border-white/15 text-sm text-white/90 text-center focus:outline-none focus:border-[rgba(201,169,110,0.5)]";
 
   return (
-    <main className="min-h-screen relative" style={{ background: "var(--background)" }}>
+    <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
       <LibraryBg scene="main" />
+      <StarField />
       <GrainOverlay />
-      <div className="relative z-20 max-w-lg mx-auto px-5 py-8">
+      <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
         <button
           onClick={() => currentStepIndex > 0 ? prevStep() : setScreen("select")}
           className="text-sm text-white/40 hover:text-white/60 mb-4 inline-block transition-colors"
