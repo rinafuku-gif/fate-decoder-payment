@@ -52,6 +52,10 @@ export default function ShareCard({
           transformOrigin: "top left",
           width: `${width}px`,
           height: `${height}px`,
+          border: "none",
+          outline: "none",
+          boxShadow: "none",
+          borderRadius: "0",
         },
         bgcolor: "#1a1410",
         quality: 1,
@@ -127,7 +131,7 @@ export default function ShareCard({
             fontSize: "28px",
             fontWeight: "bold",
             lineHeight: 1.4,
-            fontFamily: "'Shippori Mincho', serif",
+            fontFamily: "serif",
             color: "#e8d5a8",
             margin: 0,
           }}>
@@ -152,17 +156,12 @@ export default function ShareCard({
         </div>
       </div>
 
-      {/* Display-only decoration (not captured) */}
+      {/* Visual decoration around the card (CSS only, not in capture target) */}
       <div
-        className="pointer-events-none -mt-px"
+        className="pointer-events-none"
         style={{
-          position: "relative",
-          top: "-100%",
-          height: "100%",
-          borderRadius: "16px",
-          boxShadow: "0 0 40px rgba(201,169,110,0.1), 0 4px 24px rgba(0,0,0,0.3)",
-          pointerEvents: "none",
-          zIndex: -1,
+          marginTop: "-1px",
+          height: "0",
         }}
       />
 
