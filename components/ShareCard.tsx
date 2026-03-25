@@ -103,10 +103,10 @@ export default function ShareCard({
           <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(201,169,110,0.3)" }}>✦</span>
         </div>
 
-        {/* Character */}
+        {/* Character — 角丸の大きめ画像 */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
-          <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, border: "1.5px solid rgba(201,169,110,0.3)" }}>
-            <Image src={characterAvatar} alt={characterName} width={160} height={160} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+          <div style={{ width: "96px", height: "96px", borderRadius: "16px", overflow: "hidden", flexShrink: 0, border: "1.5px solid rgba(201,169,110,0.25)" }}>
+            <Image src={characterAvatar} alt={characterName} width={192} height={192} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
           </div>
           <div>
             <p style={{ fontSize: "15px", color: "rgba(232,224,208,0.7)", margin: 0, fontFamily: "serif", fontWeight: "bold" }}>{characterName}が読んだ</p>

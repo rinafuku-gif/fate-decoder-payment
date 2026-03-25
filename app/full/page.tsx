@@ -356,8 +356,8 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
         <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
           {/* 司書ヘッダー */}
           <header className="text-center mb-6">
-            <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-3" style={{ border: "2px solid rgba(201,169,110,0.5)", boxShadow: "0 0 30px rgba(201,169,110,0.2)" }}>
-              <Image src={charConfig.avatar} alt={charConfig.name} width={160} height={160} className="object-cover w-full h-full" />
+            <div className="w-28 h-28 rounded-2xl overflow-hidden mx-auto mb-3" style={{ border: "1.5px solid rgba(201,169,110,0.3)", boxShadow: "0 0 30px rgba(201,169,110,0.15)" }}>
+              <Image src={charId === "urara" ? "/urara-full.png" : "/reki-full.png"} alt={charConfig.name} width={224} height={224} className="object-cover w-full h-full" />
             </div>
             <p className="text-xs text-white/40 mb-1">{charConfig.name}が読み解いた</p>
             <h1 className="text-lg font-bold text-white">{form.name} のフル鑑定</h1>
@@ -383,7 +383,7 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
           {/* ShareCard */}
           <ShareCard
             characterName={charConfig.name}
-            characterAvatar={charConfig.avatar}
+            characterAvatar={charId === "urara" ? "/urara-full.png" : "/reki-full.png"}
             characterId={charId}
             userName={form.name}
             topicLabel="フル鑑定"
