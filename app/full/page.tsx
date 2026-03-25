@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateAll } from "@/lib/fortune-calc";
 import { generateFortune } from "@/app/actions";
+import { CHARACTER_CONFIG } from "@/lib/character";
 import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
 import ShareCard from "@/components/ShareCard";
@@ -25,6 +26,15 @@ const STEPS: { id: Step; charLine: string }[] = [
   { id: "confirm", charLine: "…これでいい？ 準備ができたら、あなたの星の記録を探しに行くね" },
 ];
 
+const STEP_LABELS: Record<Step, string> = {
+  name: "お名前",
+  birthday: "生年月日",
+  birthtime: "出生時間",
+  birthplace: "出生地",
+  concern: "相談内容",
+  confirm: "確認",
+};
+
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
@@ -41,6 +51,8 @@ export default function FullPage() {
   });
   const [resultHtml, setResultHtml] = useState("");
   const [resultMeta, setResultMeta] = useState<{ oneWord: string; bookTitle: string }>({ oneWord: "", bookTitle: "" });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [resultData, setResultData] = useState<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,11 +85,11 @@ export default function FullPage() {
   const currentStepIndex = STEPS.findIndex((s) => s.id === step);
   const currentCharLine = STEPS.find((s) => s.id === step)?.charLine || "";
 
+  const goToStep = (targetStep: Step) => setStep(targetStep);
   const nextStep = () => {
     const idx = currentStepIndex;
     if (idx < STEPS.length - 1) setStep(STEPS[idx + 1].id);
   };
-
   const prevStep = () => {
     const idx = currentStepIndex;
     if (idx > 0) setStep(STEPS[idx - 1].id);
@@ -91,6 +103,8 @@ export default function FullPage() {
     }
   };
 
+  const charConfig = CHARACTER_CONFIG.urara;
+
   const handleStartDiagnosis = async () => {
     if (!form.name || !form.year) return;
     setScreen("loading");
@@ -100,9 +114,12 @@ export default function FullPage() {
       const birthTimeInfo = form.birthHour ? `出生時間: ${form.birthHour}時` : "出生時間: 不明";
       const birthPlaceInfo = form.birthPlace || "未入力";
 
+      // #7修正: 司書（うらら）のキャラクター文体をプロンプトに反映
       const prompt = `
-あなたは、複数の占術データを読み解いて「その人だけの性格分析レポート」を小説形式で書くライターです。
-しいたけ占いのような親しみやすく温かい文体で、読者に深く寄り添うトーンで書いてください。
+${charConfig.promptStyle}
+
+あなた（うらら）は、星の図書館の司書として、この人の星の記録を読み解いたという設定で、フル鑑定レポートを小説形式で書いてください。
+うららの口調（「…」で間を取る、断定を避ける「〜だと思う」「〜かもね」）で全文を統一すること。
 
 【対象者】
 名前: ${form.name} (${form.year}年${form.month}月${form.day}日生まれ / ${birthPlaceInfo}出身 / ${birthTimeInfo})
@@ -119,15 +136,14 @@ export default function FullPage() {
 「${form.concern || "特になし"}」
 
 【執筆ルール】
-1. 専門用語は必ず噛み砕いて説明
-2. 「〜という感覚はありませんか？」のような共感・問いかけスタイル
+1. うららの口調で全文を書くこと。普通の文体は禁止
+2. 専門用語は必ず噛み砕いて説明（うらららしく「…簡単に言うと〜ってこと」のように）
 3. 各章は800文字以上。全体で6000文字以上
 4. 相談内容に合わせて3〜7章を柔軟に構成
-5. 抽象的な表現を避け具体的なシーンを入れる
-6. 6つの占術（マヤ暦・算命学・四柱推命・数秘術・西洋占星術・宿曜）を全て活用すること${form.birthHour ? "\n7. 出生時間が判明しているため、四柱推命の時柱の影響も読み解くこと" : ""}${form.birthPlace ? `\n${form.birthHour ? "8" : "7"}. 出生地（${form.birthPlace}）の土地のエネルギーも考慮すること` : ""}
-${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")}. **必ず純粋なJSON形式** で出力
+5. 6つの占術（マヤ暦・算命学・四柱推命・数秘術・西洋占星術・宿曜）を全て活用すること${form.birthHour ? "\n6. 出生時間が判明しているため、四柱推命の時柱の影響も読み解くこと" : ""}${form.birthPlace ? `\n${form.birthHour ? "7" : "6"}. 出生地（${form.birthPlace}）の土地のエネルギーも考慮すること` : ""}
+${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")}. **必ず純粋なJSON形式** で出力
 
-{"prologue":{"tag":"#はじめに","title":"序章：（タイトル）","text":"（800文字以上）"},"chapters":[{"tag":"#占術名","title":"第1章：（テーマ）","text":"（800文字以上）"}],"final":{"tag":"#まとめ","title":"最終章：これからのあなたへ","text":"（800文字以上）","magic":"具体的なアクション"}}
+{"prologue":{"tag":"#はじめに","title":"序章：（タイトル）","text":"（800文字以上・うららの口調で）"},"chapters":[{"tag":"#占術名","title":"第1章：（テーマ）","text":"（800文字以上・うららの口調で）"}],"final":{"tag":"#まとめ","title":"最終章：これからのあなたへ","text":"（800文字以上・うららの口調で）","magic":"具体的なアクション"}}
 `;
       const text = await generateFortune(prompt);
       let clean = text.replace(/```json\n?/gi, "").replace(/```\n?/g, "").trim();
@@ -151,9 +167,9 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
         story = JSON.parse(repaired);
       }
 
-      if (!story?.prologue) story.prologue = { tag: "#はじめに", title: "あなたの物語", text: "あなたの性格と運命の物語が始まります。" };
+      if (!story?.prologue) story.prologue = { tag: "#はじめに", title: "あなたの物語", text: "…あなたの星の記録、読んできたよ。" };
       if (!Array.isArray(story.chapters)) story.chapters = [];
-      if (!story?.final) story.final = { tag: "#まとめ", title: "これからのあなたへ", text: "あなたの可能性は、あなた自身の選択で広がっていきます。", magic: "自分を信じて一歩踏み出す" };
+      if (!story?.final) story.final = { tag: "#まとめ", title: "これからのあなたへ", text: "…さて、ここからはあなた次第。", magic: "自分を信じて一歩踏み出す" };
 
       const safeName = escapeHtml(form.name);
       const renderSection = (part: { tag?: string; title?: string; text?: string }) => {
@@ -165,6 +181,7 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
         </div>`;
       };
 
+      // #6修正: 6占術をグループラベル付きで表示
       const html = `
         <div class="max-w-lg mx-auto px-5 py-8">
           <header class="text-center mb-6">
@@ -172,19 +189,26 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
             <h1 class="text-xl font-bold text-white/90">${safeName} さんへのフル鑑定</h1>
             ${form.concern ? `<p class="text-xs text-white/40 mt-2">「${escapeHtml(form.concern)}」</p>` : ""}
           </header>
-          <div class="grid grid-cols-3 gap-2 mb-6">
+
+          <p class="text-[10px] text-[#c9a96e]/60 tracking-widest text-center mb-3 uppercase">— 6占術データ —</p>
+          <div class="space-y-2 mb-6">
             ${[
-              { l: "星座", v: data.western.sign },
-              { l: "KIN", v: data.maya.kin },
-              { l: "紋章", v: data.maya.glyph },
-              { l: "LP", v: data.numerology.lp },
-              { l: "中心星", v: data.bazi.weapon },
-              { l: "宿曜", v: data.sukuyo },
-              { l: "日柱", v: data.sanmeigaku.day },
-              { l: "日干", v: data.bazi.stem },
-              { l: "音", v: data.maya.tone },
-            ].map(d => `<div class="text-center p-2 rounded-xl bg-white/5 border border-[rgba(201,169,110,0.15)]"><p class="text-[10px] text-white/40">${d.l}</p><p class="text-xs font-medium text-white/70">${d.v}</p></div>`).join("")}
+              { label: "西洋占星術", items: [{ l: "星座", v: data.western.sign }] },
+              { label: "マヤ暦", items: [{ l: "KIN", v: data.maya.kin }, { l: "紋章", v: data.maya.glyph }, { l: "音", v: data.maya.tone }] },
+              { label: "数秘術", items: [{ l: "ライフパス", v: data.numerology.lp }] },
+              { label: "算命学", items: [{ l: "中心星", v: data.bazi.weapon }] },
+              { label: "宿曜", items: [{ l: "宿", v: data.sukuyo }] },
+              { label: "四柱推命", items: [{ l: "日柱", v: data.sanmeigaku.day }, { l: "日干", v: data.bazi.stem }] },
+            ].map(group => `
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-white/30 w-16 flex-shrink-0 text-right">${group.label}</span>
+                <div class="flex gap-1.5 flex-wrap">
+                  ${group.items.map(d => `<span class="px-2.5 py-1 rounded-full bg-white/5 border border-[rgba(201,169,110,0.15)] text-[11px] text-white/60"><span class="text-white/30">${d.l}</span> ${d.v}</span>`).join("")}
+                </div>
+              </div>
+            `).join("")}
           </div>
+
           ${renderSection(story.prologue)}
           ${story.chapters.map((c: { tag?: string; title?: string; text?: string }) => renderSection(c)).join("")}
           <div class="mb-6 border-l-3 border-[rgba(201,169,110,0.5)] pl-4">
@@ -201,6 +225,7 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
         oneWord: story.prologue?.title || `${form.name}の物語`,
         bookTitle: story.final?.title || `${form.name}の星の記録`,
       });
+      setResultData(data);
       setResultHtml(html);
       setScreen("result");
       window.scrollTo(0, 0);
@@ -221,8 +246,13 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
   if (screen === "loading") {
     return (
       <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
-        <div className="text-center">
-          <div className="w-10 h-10 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin mx-auto mb-4" />
+        <LibraryBg scene="main" />
+        <GrainOverlay />
+        <div className="relative z-20 text-center">
+          <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-4 border border-[rgba(201,169,110,0.2)]">
+            <Image src="/urara.png" alt="うらら" width={48} height={48} className="object-cover" />
+          </div>
+          <div className="w-8 h-8 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin mx-auto mb-4" />
           <p className="text-sm text-white/60">…あなたの星の記録を読み解いています</p>
           <p className="text-xs text-white/30 mt-1">30〜60秒ほどお待ちください</p>
         </div>
@@ -230,11 +260,25 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
     );
   }
 
+  // #5修正: 結果画面にも司書を表示
   if (screen === "result") {
     return (
       <main className="min-h-screen relative" style={{ background: "var(--background)" }}>
         <LibraryBg scene="desk" />
         <GrainOverlay />
+
+        {/* 司書の存在を結果画面でも維持 */}
+        <div className="relative z-20 max-w-lg mx-auto px-5 pt-8 pb-4">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-[rgba(201,169,110,0.2)]">
+              <Image src="/urara.png" alt="うらら" width={40} height={40} className="object-cover" />
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 flex-1">
+              <p className="text-sm text-white/70 leading-relaxed">…{form.name}の星の記録、全部読んできたよ。長くなったけど、大事なことが書いてあるから最後まで読んでみて</p>
+            </div>
+          </div>
+        </div>
+
         <div className="relative z-20" dangerouslySetInnerHTML={{ __html: resultHtml }} />
         <div className="relative z-20 max-w-lg mx-auto px-5 pb-8">
           <ShareCard
@@ -245,6 +289,9 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
             topicLabel="フル鑑定"
             oneWord={resultMeta.oneWord}
             bookTitle={resultMeta.bookTitle}
+            westernSign={resultData?.western?.sign}
+            kin={resultData?.maya?.kin}
+            glyph={resultData?.maya?.glyph}
             siteUrl={typeof window !== "undefined" ? window.location.origin : ""}
           />
         </div>
@@ -269,8 +316,10 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
   }
 
   // Conversational input
-  const inputClass = "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 placeholder-white/20 focus:outline-none focus:border-[rgba(201,169,110,0.4)] focus:ring-1 focus:ring-[rgba(201,169,110,0.2)]";
-  const selectClass = "px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/80 text-center focus:outline-none focus:border-[rgba(201,169,110,0.4)]";
+  // #2修正: placeholderのコントラストを上げる (placeholder-white/40)
+  // #3修正: ボタンの視認性を改善
+  const inputClass = "w-full px-4 py-3 rounded-xl bg-white/8 border border-white/15 text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-[rgba(201,169,110,0.5)] focus:ring-1 focus:ring-[rgba(201,169,110,0.3)]";
+  const selectClass = "px-3 py-3 rounded-xl bg-white/8 border border-white/15 text-sm text-white/90 text-center focus:outline-none focus:border-[rgba(201,169,110,0.5)]";
 
   return (
     <main className="min-h-screen relative" style={{ background: "var(--background)" }}>
@@ -279,7 +328,7 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
       <div className="relative z-20 max-w-lg mx-auto px-5 py-8">
         <button
           onClick={() => currentStepIndex > 0 ? prevStep() : router.push(ref ? `/?ref=${ref}` : "/")}
-          className="text-sm text-white/30 hover:text-white/50 mb-4 inline-block transition-colors"
+          className="text-sm text-white/40 hover:text-white/60 mb-4 inline-block transition-colors"
         >
           ← {currentStepIndex > 0 ? "前へ" : "戻る"}
         </button>
@@ -296,15 +345,15 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
             <div
               key={s.id}
               className="w-2 h-2 rounded-full transition-colors"
-              style={{ background: i <= currentStepIndex ? "rgba(201,169,110,0.7)" : "rgba(255,255,255,0.1)" }}
+              style={{ background: i <= currentStepIndex ? "rgba(201,169,110,0.8)" : "rgba(255,255,255,0.15)" }}
             />
           ))}
         </div>
 
-        {/* Character speech */}
-        <div className="flex items-start gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-[rgba(201,169,110,0.2)]">
-            <Image src="/urara.png" alt="うらら" width={40} height={40} className="object-cover" />
+        {/* #1修正: Character speech — アイコンとセリフの配置を改善 */}
+        <div className="flex gap-3 mb-6">
+          <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-[rgba(201,169,110,0.3)] mt-0.5">
+            <Image src="/urara.png" alt="うらら" width={40} height={40} className="object-cover w-full h-full" />
           </div>
           <AnimatePresence mode="wait">
             <motion.div
@@ -312,7 +361,7 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 flex-1"
+              className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 flex-1 min-w-0"
             >
               <p className="text-sm text-white/70 leading-relaxed">{currentCharLine}</p>
             </motion.div>
@@ -330,7 +379,7 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
           >
             {step === "name" && (
               <div>
-                <label className="block text-sm font-medium text-white/70 mb-1">お名前 <span className="text-[#c9a96e] text-xs">必須</span></label>
+                <label className="block text-sm font-medium text-white/70 mb-2">お名前 <span className="text-[#c9a96e] text-xs">必須</span></label>
                 <input
                   type="text" value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -343,7 +392,7 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
 
             {step === "birthday" && (
               <div>
-                <label className="block text-sm font-medium text-white/70 mb-1">生年月日 <span className="text-[#c9a96e] text-xs">必須</span></label>
+                <label className="block text-sm font-medium text-white/70 mb-2">生年月日 <span className="text-[#c9a96e] text-xs">必須</span></label>
                 <div className="grid grid-cols-3 gap-2">
                   <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="1995" autoFocus className={selectClass} />
                   <select value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className={selectClass}>
@@ -358,18 +407,18 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
 
             {step === "birthtime" && (
               <div>
-                <label className="block text-sm font-medium text-white/70 mb-1">出生時間 <span className="text-white/20 text-xs">任意・わからなければ空でOK</span></label>
+                <label className="block text-sm font-medium text-white/70 mb-2">出生時間 <span className="text-white/30 text-xs">任意・わからなければ空でOK</span></label>
                 <select value={form.birthHour} onChange={(e) => setForm({ ...form, birthHour: e.target.value })} className={`w-full ${selectClass}`}>
                   <option value="">わからない</option>
                   {Array.from({ length: 24 }, (_, i) => (<option key={i} value={i}>{i}時台（{i}:00〜{i}:59）</option>))}
                 </select>
-                <p className="text-[10px] text-white/30 mt-1">四柱推命の時柱の計算に使います。わからない場合は省略できます。</p>
+                <p className="text-[11px] text-white/30 mt-2">四柱推命の時柱の計算に使います</p>
               </div>
             )}
 
             {step === "birthplace" && (
               <div>
-                <label className="block text-sm font-medium text-white/70 mb-1">出生地 <span className="text-white/20 text-xs">任意</span></label>
+                <label className="block text-sm font-medium text-white/70 mb-2">出生地 <span className="text-white/30 text-xs">任意</span></label>
                 <input
                   type="text" value={form.birthPlace}
                   onChange={(e) => setForm({ ...form, birthPlace: e.target.value })}
@@ -382,7 +431,7 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
 
             {step === "concern" && (
               <div>
-                <label className="block text-sm font-medium text-white/70 mb-1">相談したいこと <span className="text-white/20 text-xs">任意</span></label>
+                <label className="block text-sm font-medium text-white/70 mb-2">相談したいこと <span className="text-white/30 text-xs">任意</span></label>
                 <textarea
                   value={form.concern}
                   onChange={(e) => setForm({ ...form, concern: e.target.value })}
@@ -392,40 +441,42 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
               </div>
             )}
 
+            {/* #4修正: 確認画面の各項目をタップでそのステップに戻れる */}
             {step === "confirm" && (
               <div className="space-y-2 text-sm">
-                <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                  <p className="text-white/40 text-xs mb-1">お名前</p>
+                <button onClick={() => goToStep("name")} className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-left hover:bg-white/8 transition-colors">
+                  <p className="text-white/40 text-xs mb-0.5">{STEP_LABELS.name}</p>
                   <p className="text-white/80">{form.name}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                  <p className="text-white/40 text-xs mb-1">生年月日</p>
+                </button>
+                <button onClick={() => goToStep("birthday")} className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-left hover:bg-white/8 transition-colors">
+                  <p className="text-white/40 text-xs mb-0.5">{STEP_LABELS.birthday}</p>
                   <p className="text-white/80">{form.year}年{form.month}月{form.day}日{form.birthHour ? ` ${form.birthHour}時台` : ""}</p>
-                </div>
+                </button>
                 {form.birthPlace && (
-                  <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                    <p className="text-white/40 text-xs mb-1">出生地</p>
+                  <button onClick={() => goToStep("birthplace")} className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-left hover:bg-white/8 transition-colors">
+                    <p className="text-white/40 text-xs mb-0.5">{STEP_LABELS.birthplace}</p>
                     <p className="text-white/80">{form.birthPlace}</p>
-                  </div>
+                  </button>
                 )}
                 {form.concern && (
-                  <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                    <p className="text-white/40 text-xs mb-1">相談内容</p>
+                  <button onClick={() => goToStep("concern")} className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-left hover:bg-white/8 transition-colors">
+                    <p className="text-white/40 text-xs mb-0.5">{STEP_LABELS.concern}</p>
                     <p className="text-white/80">{form.concern}</p>
-                  </div>
+                  </button>
                 )}
+                <p className="text-[10px] text-white/20 text-center mt-1">タップして修正できます</p>
               </div>
             )}
           </motion.div>
         </AnimatePresence>
 
-        {/* Navigation */}
+        {/* #3修正: ボタンの視認性を大幅改善 */}
         <div className="mt-6">
           {step === "confirm" ? (
             <button
               onClick={handleStartDiagnosis}
-              className="w-full py-3.5 rounded-full text-white font-medium text-sm transition-colors"
-              style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.5), rgba(201,169,110,0.25))", border: "1px solid rgba(201,169,110,0.3)" }}
+              className="w-full py-4 rounded-full text-white font-bold text-sm tracking-wide transition-all active:scale-95"
+              style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.7), rgba(201,169,110,0.4))", border: "1px solid rgba(201,169,110,0.5)", boxShadow: "0 2px 12px rgba(201,169,110,0.2)" }}
             >
               鑑定を開始する
             </button>
@@ -433,8 +484,13 @@ ${form.birthHour ? (form.birthPlace ? "9" : "8") : (form.birthPlace ? "8" : "7")
             <button
               onClick={nextStep}
               disabled={!canProceed()}
-              className="w-full py-3.5 rounded-full text-white font-medium text-sm transition-colors disabled:opacity-30"
-              style={{ background: canProceed() ? "linear-gradient(135deg, rgba(201,169,110,0.5), rgba(201,169,110,0.25))" : "rgba(255,255,255,0.05)", border: "1px solid rgba(201,169,110,0.3)" }}
+              className="w-full py-4 rounded-full font-bold text-sm tracking-wide transition-all active:scale-95 disabled:opacity-20"
+              style={{
+                background: canProceed() ? "linear-gradient(135deg, rgba(201,169,110,0.7), rgba(201,169,110,0.4))" : "rgba(255,255,255,0.05)",
+                border: canProceed() ? "1px solid rgba(201,169,110,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                color: canProceed() ? "#fff" : "rgba(255,255,255,0.3)",
+                boxShadow: canProceed() ? "0 2px 12px rgba(201,169,110,0.2)" : "none",
+              }}
             >
               {step === "birthtime" || step === "birthplace" || step === "concern" ? "次へ（スキップ可）" : "次へ"}
             </button>

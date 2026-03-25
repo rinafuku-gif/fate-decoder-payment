@@ -42,8 +42,9 @@ export default function ShareCard({
       const node = cardRef.current;
       const width = node.offsetWidth;
       const height = node.offsetHeight;
-      const scale = 3; // 3x for Retina / SNS quality
+      const scale = 3;
 
+      // 枠線問題の根本対策: filter関数で不要な要素を除外
       const blob = await domToImage.toBlob(node, {
         width: width * scale,
         height: height * scale,
@@ -52,19 +53,22 @@ export default function ShareCard({
           transformOrigin: "top left",
           width: `${width}px`,
           height: `${height}px`,
-          border: "none",
-          outline: "none",
-          boxShadow: "none",
-          borderRadius: "0",
         },
         bgcolor: "#1a1410",
         quality: 1,
+        filter: (el: Element) => {
+          // ShareCard外の要素やdecoration要素を除外
+          if (el instanceof HTMLElement) {
+            if (el.dataset?.noncapture === "true") return false;
+          }
+          return true;
+        },
       });
 
       if (!blob) throw new Error("Failed to generate image");
 
-      // Try native share (mobile)
-      if (navigator.share && navigator.canShare) {
+      // Try native share (mobile) — 1回だけ保存/共有する
+      if (typeof navigator !== "undefined" && navigator.share && navigator.canShare) {
         const file = new File([blob], "star-library-result.png", { type: "image/png" });
         const shareData = { files: [file], title: "星の図書館", text: `「${bookTitle || oneWord}」\n${userName}の星の記録、読んでもらった` };
         if (navigator.canShare(shareData)) {
@@ -74,7 +78,7 @@ export default function ShareCard({
         }
       }
 
-      // Fallback: download
+      // Fallback: download（1枚だけ）
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -91,13 +95,13 @@ export default function ShareCard({
 
   return (
     <div className="mb-8">
-      {/* ── Capture target: NO border, NO shadow, NO borderRadius ── */}
+      {/* ── Capture target ── */}
       <div
         ref={cardRef}
         style={{
           background: "#1a1410",
           padding: "32px 28px",
-          /* Explicitly no border/shadow/radius — clean capture */
+          overflow: "hidden",
         }}
       >
         {/* Header */}
@@ -156,16 +160,7 @@ export default function ShareCard({
         </div>
       </div>
 
-      {/* Visual decoration around the card (CSS only, not in capture target) */}
-      <div
-        className="pointer-events-none"
-        style={{
-          marginTop: "-1px",
-          height: "0",
-        }}
-      />
-
-      {/* Save / Share button */}
+      {/* Save / Share button — 1つだけ */}
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.97 }}
@@ -173,10 +168,9 @@ export default function ShareCard({
         disabled={saving}
         className="mt-3 w-full py-3 rounded text-sm font-medium transition-all disabled:opacity-40"
         style={{
-          background: "rgba(201,169,110,0.12)",
-          border: "1px solid rgba(201,169,110,0.2)",
-          color: "var(--brass-light)",
-          fontFamily: "var(--font-ui), sans-serif",
+          background: "rgba(201,169,110,0.15)",
+          border: "1px solid rgba(201,169,110,0.3)",
+          color: "#c9a96e",
         }}
       >
         {saving ? "…準備中" : "カードを保存"}
