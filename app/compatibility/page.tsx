@@ -6,6 +6,9 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateAll, calculateCompatibility, type CompatibilityType } from "@/lib/fortune-calc";
 import { generateFortune } from "@/app/actions";
+import { CHARACTER_CONFIG, type Character } from "@/lib/character";
+import StarField from "@/components/StarField";
+import FadeIn from "@/components/FadeIn";
 import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
 import ShareCard from "@/components/ShareCard";
@@ -22,19 +25,32 @@ const COMPAT_TYPES: { id: CompatibilityType; label: string; desc: string }[] = [
 
 type Step = "type-select" | "person1" | "person2" | "confirm";
 
-const STEP_LINES: Record<Step, string> = {
-  "type-select": "…ふたりのことを見てほしいんだね。まず、どんな相性を知りたい？",
-  "person1": "…じゃあ、まず1人目の情報を教えて",
-  "person2": "…ありがとう。次に2人目の情報を教えてくれる？",
-  "confirm": "…ふたりの情報、これでいい？ 準備ができたら星の記録を照合するね",
+const STEP_LINES: Record<Step, Record<Character, string>> = {
+  "type-select": {
+    urara: "…ふたりのことを見てほしいんだね。まず、どんな相性を知りたい？",
+    reki: "…ふたりの相性、見てあげようか。どの相性が気になる？",
+  },
+  person1: {
+    urara: "…じゃあ、まず1人目の情報を教えて",
+    reki: "…まず1人目。名前と生年月日を教えて",
+  },
+  person2: {
+    urara: "…ありがとう。次に2人目の情報を教えてくれる？",
+    reki: "…次、2人目。同じく名前と生年月日",
+  },
+  confirm: {
+    urara: "…ふたりの情報、これでいい？ 準備ができたら星の記録を照合するね",
+    reki: "…これでいいね？ じゃあ照合してくる",
+  },
 };
 
 export default function CompatibilityPage() {
   const router = useRouter();
   const [ref, setRef] = useState<string | null>(null);
   const [verified, setVerified] = useState(TEST_MODE);
+  const [character, setCharacter] = useState<Character | null>(null);
   const [step, setStep] = useState<Step>("type-select");
-  const [screen, setScreen] = useState<"input" | "loading" | "result">("input");
+  const [screen, setScreen] = useState<"select" | "input" | "loading" | "result">("select");
   const [compatType, setCompatType] = useState<CompatibilityType>("love");
   const [person1, setPerson1] = useState({ name: "", year: "", month: "1", day: "1" });
   const [person2, setPerson2] = useState({ name: "", year: "", month: "1", day: "1" });
@@ -100,10 +116,12 @@ export default function CompatibilityPage() {
       const isGeneral = compatType === "general";
       const typeLabel = COMPAT_TYPES.find(t => t.id === compatType)?.label || "総合";
 
+      const selectedConfig = CHARACTER_CONFIG[character || "urara"];
       const prompt = `
-あなたは鑑定実績1万人超の本物の占い師です。
-2人の6占術データと相性スコアをもとに、${typeLabel}の観点で相性を読み解いてください。
-しいたけ占いのような親しみやすい文体で。
+${selectedConfig.promptStyle}
+
+あなた（${selectedConfig.name}）は星の図書館の司書として、2人の6占術データと相性スコアをもとに、${typeLabel}の観点で相性を読み解いてください。
+${selectedConfig.name}の口調で全文を統一すること。普通の文体は禁止。
 
 ■ ${person1.name}さん (${person1.year}年${person1.month}月${person1.day}日生まれ)
 ・マヤ暦: KIN${data1.maya.kin} / 紋章:${data1.maya.glyph} / 音:${data1.maya.tone}
@@ -149,6 +167,60 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
     return (
       <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
         <div className="w-8 h-8 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin" />
+      </main>
+    );
+  }
+
+  // キャラ選択画面
+  if (screen === "select") {
+    return (
+      <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
+        <LibraryBg scene="main" />
+        <StarField />
+        <GrainOverlay />
+        <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
+          <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="text-sm text-white/30 hover:text-white/60 mb-4 inline-block transition-colors">← 戻る</button>
+          <FadeIn delay={0.2}>
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold mb-1 text-white" style={{ fontFamily: "var(--font-serif), serif" }}>相性鑑定</h1>
+              <p className="text-xs text-white/40">…どちらの司書に読んでもらう？</p>
+            </div>
+          </FadeIn>
+          <div className="grid grid-cols-2 gap-4">
+            {(["urara", "reki"] as Character[]).map((c, i) => {
+              const cfg = CHARACTER_CONFIG[c];
+              const fullImg = c === "urara" ? "/urara-full.png" : "/reki-full.png";
+              return (
+                <motion.button
+                  key={c}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.2 }}
+                  whileHover={{ scale: 1.03, boxShadow: "0 10px 40px rgba(201,169,110,0.15)" }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => { setCharacter(c); setScreen("input"); }}
+                  className="rounded-2xl overflow-hidden text-center"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,169,110,0.2)" }}
+                >
+                  <motion.div
+                    className="w-full aspect-square overflow-hidden"
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
+                  >
+                    <Image src={fullImg} alt={cfg.name} width={382} height={382} className="object-cover w-full h-full" />
+                  </motion.div>
+                  <div className="p-3">
+                    <p className="text-sm font-bold text-white">{cfg.name}</p>
+                    <p className="text-[11px] text-white/40 mt-0.5">{cfg.description}</p>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+          <FadeIn delay={0.8}>
+            <p className="text-center text-[11px] text-white/20 mt-6">¥200 — 2人の星を重ねて読む</p>
+          </FadeIn>
+        </div>
       </main>
     );
   }
@@ -218,9 +290,9 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
           ))}
 
           <ShareCard
-            characterName="うらら"
-            characterAvatar="/urara.png"
-            characterId="urara"
+            characterName={CHARACTER_CONFIG[character || "urara"].name}
+            characterAvatar={CHARACTER_CONFIG[character || "urara"].avatar}
+            characterId={character || "urara"}
             userName={`${result.name1} × ${result.name2}`}
             topicLabel="相性鑑定"
             oneWord={result.story.oneWord || `相性${result.score.total}点`}
@@ -268,7 +340,7 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
       <GrainOverlay />
       <div className="relative z-20 max-w-lg mx-auto px-5 py-8">
         <button
-          onClick={() => currentStepIndex > 0 ? prevStep() : router.push(ref ? `/?ref=${ref}` : "/")}
+          onClick={() => currentStepIndex > 0 ? prevStep() : setScreen("select")}
           className="text-sm text-white/30 hover:text-white/50 mb-4 inline-block transition-colors"
         >
           ← {currentStepIndex > 0 ? "前へ" : "戻る"}
@@ -294,7 +366,7 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
         {/* Character speech */}
         <div className="flex items-start gap-3 mb-6">
           <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-[rgba(201,169,110,0.2)]">
-            <Image src="/urara.png" alt="うらら" width={40} height={40} className="object-cover" />
+            <Image src={CHARACTER_CONFIG[character || "urara"].avatar} alt={CHARACTER_CONFIG[character || "urara"].name} width={40} height={40} className="object-cover" />
           </div>
           <AnimatePresence mode="wait">
             <motion.div
@@ -304,7 +376,7 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
               exit={{ opacity: 0, y: -8 }}
               className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 flex-1"
             >
-              <p className="text-sm text-white/70 leading-relaxed">{STEP_LINES[step]}</p>
+              <p className="text-sm text-white/70 leading-relaxed">{STEP_LINES[step]?.[character || "urara"]}</p>
             </motion.div>
           </AnimatePresence>
         </div>

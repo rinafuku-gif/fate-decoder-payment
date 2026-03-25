@@ -6,7 +6,9 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateAll } from "@/lib/fortune-calc";
 import { generateFortune } from "@/app/actions";
-import { CHARACTER_CONFIG } from "@/lib/character";
+import { CHARACTER_CONFIG, type Character } from "@/lib/character";
+import StarField from "@/components/StarField";
+import FadeIn from "@/components/FadeIn";
 import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
 import ShareCard from "@/components/ShareCard";
@@ -17,14 +19,35 @@ const TEST_MODE = true;
 
 type Step = "name" | "birthday" | "birthtime" | "birthplace" | "concern" | "confirm";
 
-const STEPS: { id: Step; charLine: string }[] = [
-  { id: "name", charLine: "…こんにちは。あなたの名前を教えてもらえる？" },
-  { id: "birthday", charLine: "…ありがとう。次に、生年月日を教えて" },
-  { id: "birthtime", charLine: "…出生時間がわかると、もっと深く読めるよ。わからなければ飛ばしてOK" },
-  { id: "birthplace", charLine: "…生まれた場所も教えてくれる？ わからなければ飛ばして大丈夫" },
-  { id: "concern", charLine: "…最後に、何か聞きたいことや気になっていることがあれば" },
-  { id: "confirm", charLine: "…これでいい？ 準備ができたら、あなたの星の記録を探しに行くね" },
-];
+// セリフはキャラ選択後に動的生成するため、ここではデフォルト（うらら）で定義
+const STEP_LINES: Record<Step, { urara: string; reki: string }> = {
+  name: {
+    urara: "…こんにちは。あなたの名前を教えてもらえる？",
+    reki: "…はいはい。まず名前を聞いておこうか",
+  },
+  birthday: {
+    urara: "…ありがとう。次に、生年月日を教えて",
+    reki: "…次、生年月日。これがないと始まらないからね",
+  },
+  birthtime: {
+    urara: "…出生時間がわかると、もっと深く読めるよ。わからなければ飛ばしてOK",
+    reki: "…出生時間、わかる？ わかると面白いんだけど。まあ、わからなくても大丈夫",
+  },
+  birthplace: {
+    urara: "…生まれた場所も教えてくれる？ わからなければ飛ばして大丈夫",
+    reki: "…生まれた場所は？ 土地の気も影響するんだよ。…知らなかった？",
+  },
+  concern: {
+    urara: "…最後に、何か聞きたいことや気になっていることがあれば",
+    reki: "…何か聞きたいことある？ なければないで、勝手に読むけど",
+  },
+  confirm: {
+    urara: "…これでいい？ 準備ができたら、あなたの星の記録を探しに行くね",
+    reki: "…これでいいね？ じゃあ、ちょっと探しに行ってくる",
+  },
+};
+
+const STEPS: Step[] = ["name", "birthday", "birthtime", "birthplace", "concern", "confirm"];
 
 const STEP_LABELS: Record<Step, string> = {
   name: "お名前",
@@ -43,8 +66,9 @@ export default function FullPage() {
   const router = useRouter();
   const [ref, setRef] = useState<string | null>(null);
   const [verified, setVerified] = useState(TEST_MODE);
+  const [character, setCharacter] = useState<Character | null>(null);
   const [step, setStep] = useState<Step>("name");
-  const [screen, setScreen] = useState<"input" | "loading" | "result">("input");
+  const [screen, setScreen] = useState<"select" | "input" | "loading" | "result">("select");
   const [form, setForm] = useState({
     name: "", year: "", month: "1", day: "1",
     birthHour: "", birthPlace: "", concern: "",
@@ -82,17 +106,17 @@ export default function FullPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [step]);
 
-  const currentStepIndex = STEPS.findIndex((s) => s.id === step);
-  const currentCharLine = STEPS.find((s) => s.id === step)?.charLine || "";
+  const currentStepIndex = STEPS.indexOf(step);
+  const charId = character || "urara";
+  const charConfig = CHARACTER_CONFIG[charId];
+  const currentCharLine = STEP_LINES[step]?.[charId] || "";
 
   const goToStep = (targetStep: Step) => setStep(targetStep);
   const nextStep = () => {
-    const idx = currentStepIndex;
-    if (idx < STEPS.length - 1) setStep(STEPS[idx + 1].id);
+    if (currentStepIndex < STEPS.length - 1) setStep(STEPS[currentStepIndex + 1]);
   };
   const prevStep = () => {
-    const idx = currentStepIndex;
-    if (idx > 0) setStep(STEPS[idx - 1].id);
+    if (currentStepIndex > 0) setStep(STEPS[currentStepIndex - 1]);
   };
 
   const canProceed = () => {
@@ -103,8 +127,6 @@ export default function FullPage() {
     }
   };
 
-  const charConfig = CHARACTER_CONFIG.urara;
-
   const handleStartDiagnosis = async () => {
     if (!form.name || !form.year) return;
     setScreen("loading");
@@ -114,12 +136,13 @@ export default function FullPage() {
       const birthTimeInfo = form.birthHour ? `出生時間: ${form.birthHour}時` : "出生時間: 不明";
       const birthPlaceInfo = form.birthPlace || "未入力";
 
-      // #7修正: 司書（うらら）のキャラクター文体をプロンプトに反映
+      // 選択した司書のキャラクター文体をプロンプトに反映
+      const selectedConfig = CHARACTER_CONFIG[charId];
       const prompt = `
-${charConfig.promptStyle}
+${selectedConfig.promptStyle}
 
-あなた（うらら）は、星の図書館の司書として、この人の星の記録を読み解いたという設定で、フル鑑定レポートを小説形式で書いてください。
-うららの口調（「…」で間を取る、断定を避ける「〜だと思う」「〜かもね」）で全文を統一すること。
+あなた（${selectedConfig.name}）は、星の図書館の司書として、この人の星の記録を読み解いたという設定で、フル鑑定レポートを小説形式で書いてください。
+${selectedConfig.name}の口調で全文を統一すること。普通の文体は禁止。
 
 【対象者】
 名前: ${form.name} (${form.year}年${form.month}月${form.day}日生まれ / ${birthPlaceInfo}出身 / ${birthTimeInfo})
@@ -136,14 +159,14 @@ ${charConfig.promptStyle}
 「${form.concern || "特になし"}」
 
 【執筆ルール】
-1. うららの口調で全文を書くこと。普通の文体は禁止
-2. 専門用語は必ず噛み砕いて説明（うらららしく「…簡単に言うと〜ってこと」のように）
+1. ${selectedConfig.name}の口調で全文を書くこと。普通の文体は禁止
+2. 専門用語は必ず噛み砕いて説明（${selectedConfig.name}らしい言い方で）
 3. 各章は800文字以上。全体で6000文字以上
 4. 相談内容に合わせて3〜7章を柔軟に構成
 5. 6つの占術（マヤ暦・算命学・四柱推命・数秘術・西洋占星術・宿曜）を全て活用すること${form.birthHour ? "\n6. 出生時間が判明しているため、四柱推命の時柱の影響も読み解くこと" : ""}${form.birthPlace ? `\n${form.birthHour ? "7" : "6"}. 出生地（${form.birthPlace}）の土地のエネルギーも考慮すること` : ""}
 ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")}. **必ず純粋なJSON形式** で出力
 
-{"prologue":{"tag":"#はじめに","title":"序章：（タイトル）","text":"（800文字以上・うららの口調で）"},"chapters":[{"tag":"#占術名","title":"第1章：（テーマ）","text":"（800文字以上・うららの口調で）"}],"final":{"tag":"#まとめ","title":"最終章：これからのあなたへ","text":"（800文字以上・うららの口調で）","magic":"具体的なアクション"}}
+{"prologue":{"tag":"#はじめに","title":"序章：（タイトル）","text":"（800文字以上・${selectedConfig.name}の口調で）"},"chapters":[{"tag":"#占術名","title":"第1章：（テーマ）","text":"（800文字以上・${selectedConfig.name}の口調で）"}],"final":{"tag":"#まとめ","title":"最終章：これからのあなたへ","text":"（800文字以上・${selectedConfig.name}の口調で）","magic":"具体的なアクション"}}
 `;
       const text = await generateFortune(prompt);
       let clean = text.replace(/```json\n?/gi, "").replace(/```\n?/g, "").trim();
@@ -167,7 +190,7 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
         story = JSON.parse(repaired);
       }
 
-      if (!story?.prologue) story.prologue = { tag: "#はじめに", title: "あなたの物語", text: "…あなたの星の記録、読んできたよ。" };
+      if (!story?.prologue) story.prologue = { tag: "#はじめに", title: "あなたの物語", text: charId === "reki" ? "…読んできたよ。面白い星の配置してるね。" : "…あなたの星の記録、読んできたよ。" };
       if (!Array.isArray(story.chapters)) story.chapters = [];
       if (!story?.final) story.final = { tag: "#まとめ", title: "これからのあなたへ", text: "…さて、ここからはあなた次第。", magic: "自分を信じて一歩踏み出す" };
 
@@ -243,6 +266,60 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
     );
   }
 
+  // キャラ選択画面（ショート鑑定と同じUI）
+  if (screen === "select") {
+    return (
+      <main className="min-h-screen relative overflow-hidden" style={{ background: "#0a0e1a" }}>
+        <LibraryBg scene="main" />
+        <StarField />
+        <GrainOverlay />
+        <div className="relative z-10 max-w-lg mx-auto px-5 py-8">
+          <button onClick={() => router.push(ref ? `/?ref=${ref}` : "/")} className="text-sm text-white/30 hover:text-white/60 mb-4 inline-block transition-colors">← 戻る</button>
+          <FadeIn delay={0.2}>
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold mb-1 text-white" style={{ fontFamily: "var(--font-serif), serif" }}>フル鑑定</h1>
+              <p className="text-xs text-white/40">…どちらの司書に読んでもらう？</p>
+            </div>
+          </FadeIn>
+          <div className="grid grid-cols-2 gap-4">
+            {(["urara", "reki"] as Character[]).map((c, i) => {
+              const cfg = CHARACTER_CONFIG[c];
+              const fullImg = c === "urara" ? "/urara-full.png" : "/reki-full.png";
+              return (
+                <motion.button
+                  key={c}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.2 }}
+                  whileHover={{ scale: 1.03, boxShadow: "0 10px 40px rgba(201,169,110,0.15)" }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => { setCharacter(c); setScreen("input"); }}
+                  className="rounded-2xl overflow-hidden text-center"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,169,110,0.2)" }}
+                >
+                  <motion.div
+                    className="w-full aspect-square overflow-hidden"
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
+                  >
+                    <Image src={fullImg} alt={cfg.name} width={382} height={382} className="object-cover w-full h-full" />
+                  </motion.div>
+                  <div className="p-3">
+                    <p className="text-sm font-bold text-white">{cfg.name}</p>
+                    <p className="text-[11px] text-white/40 mt-0.5">{cfg.description}</p>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+          <FadeIn delay={0.8}>
+            <p className="text-center text-[11px] text-white/20 mt-6">¥200 — 6000文字超の詳細レポート</p>
+          </FadeIn>
+        </div>
+      </main>
+    );
+  }
+
   if (screen === "loading") {
     return (
       <main className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
@@ -250,7 +327,7 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
         <GrainOverlay />
         <div className="relative z-20 text-center">
           <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-4 border border-[rgba(201,169,110,0.2)]">
-            <Image src="/urara.png" alt="うらら" width={48} height={48} className="object-cover" />
+            <Image src={charConfig.avatar} alt={charConfig.name} width={48} height={48} className="object-cover" />
           </div>
           <div className="w-8 h-8 border-3 border-[rgba(201,169,110,0.3)] border-t-[#c9a96e] rounded-full animate-spin mx-auto mb-4" />
           <p className="text-sm text-white/60">…あなたの星の記録を読み解いています</p>
@@ -271,10 +348,14 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
         <div className="relative z-20 max-w-lg mx-auto px-5 pt-8 pb-4">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-[rgba(201,169,110,0.2)]">
-              <Image src="/urara.png" alt="うらら" width={40} height={40} className="object-cover" />
+              <Image src={charConfig.avatar} alt={charConfig.name} width={40} height={40} className="object-cover" />
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 flex-1">
-              <p className="text-sm text-white/70 leading-relaxed">…{form.name}の星の記録、全部読んできたよ。長くなったけど、大事なことが書いてあるから最後まで読んでみて</p>
+              <p className="text-sm text-white/70 leading-relaxed">
+                {charId === "reki"
+                  ? `…${form.name}の記録、全部読んできた。長いけど、まあ面白いから読んでみて`
+                  : `…${form.name}の星の記録、全部読んできたよ。長くなったけど、大事なことが書いてあるから最後まで読んでみて`}
+              </p>
             </div>
           </div>
         </div>
@@ -282,9 +363,9 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
         <div className="relative z-20" dangerouslySetInnerHTML={{ __html: resultHtml }} />
         <div className="relative z-20 max-w-lg mx-auto px-5 pb-8">
           <ShareCard
-            characterName="うらら"
-            characterAvatar="/urara.png"
-            characterId="urara"
+            characterName={charConfig.name}
+            characterAvatar={charConfig.avatar}
+            characterId={charId}
             userName={form.name}
             topicLabel="フル鑑定"
             oneWord={resultMeta.oneWord}
@@ -327,10 +408,10 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
       <GrainOverlay />
       <div className="relative z-20 max-w-lg mx-auto px-5 py-8">
         <button
-          onClick={() => currentStepIndex > 0 ? prevStep() : router.push(ref ? `/?ref=${ref}` : "/")}
+          onClick={() => currentStepIndex > 0 ? prevStep() : setScreen("select")}
           className="text-sm text-white/40 hover:text-white/60 mb-4 inline-block transition-colors"
         >
-          ← {currentStepIndex > 0 ? "前へ" : "戻る"}
+          ← {currentStepIndex > 0 ? "前へ" : "司書選択へ"}
         </button>
 
         <div className="text-center mb-6">
@@ -343,17 +424,17 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
         <div className="flex justify-center gap-1.5 mb-6">
           {STEPS.map((s, i) => (
             <div
-              key={s.id}
+              key={s}
               className="w-2 h-2 rounded-full transition-colors"
               style={{ background: i <= currentStepIndex ? "rgba(201,169,110,0.8)" : "rgba(255,255,255,0.15)" }}
             />
           ))}
         </div>
 
-        {/* #1修正: Character speech — アイコンとセリフの配置を改善 */}
+        {/* Character speech */}
         <div className="flex gap-3 mb-6">
           <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-[rgba(201,169,110,0.3)] mt-0.5">
-            <Image src="/urara.png" alt="うらら" width={40} height={40} className="object-cover w-full h-full" />
+            <Image src={charConfig.avatar} alt={charConfig.name} width={40} height={40} className="object-cover w-full h-full" />
           </div>
           <AnimatePresence mode="wait">
             <motion.div
