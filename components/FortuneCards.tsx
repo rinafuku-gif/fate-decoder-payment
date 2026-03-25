@@ -111,29 +111,44 @@ export default function FortuneCards({ data }: FortuneCardsProps) {
               </div>
             </div>
 
-            <AnimatePresence>
-              {expanded === card.id && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="mt-3 pt-3" style={{ borderTop: "1px solid rgba(201,169,110,0.1)" }}>
-                    <p className="text-[10px] text-white/30 mb-2">{card.description}</p>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {card.items.map((item) => (
-                        <div key={item.key} className="px-2 py-1.5 rounded-lg" style={{ background: "rgba(255,255,255,0.03)" }}>
-                          <p className="text-[9px] text-white/25">{item.key}</p>
-                          <p className="text-xs font-medium text-white/80">{item.value}</p>
-                        </div>
-                      ))}
+            {/* 画面表示: タップで展開 */}
+            <div className="print:hidden">
+              <AnimatePresence>
+                {expanded === card.id && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-3 pt-3" style={{ borderTop: "1px solid rgba(201,169,110,0.1)" }}>
+                      <p className="text-[10px] text-white/30 mb-2">{card.description}</p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {card.items.map((item) => (
+                          <div key={item.key} className="px-2 py-1.5 rounded-lg" style={{ background: "rgba(255,255,255,0.03)" }}>
+                            <p className="text-[9px] text-white/25">{item.key}</p>
+                            <p className="text-xs font-medium text-white/80">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            {/* PDF出力: 常に展開 */}
+            <div className="hidden print:block mt-3 pt-3" style={{ borderTop: "1px solid rgba(201,169,110,0.1)" }}>
+              <p className="text-[10px] text-white/30 mb-2">{card.description}</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {card.items.map((item) => (
+                  <div key={item.key} className="px-2 py-1.5 rounded-lg" style={{ background: "rgba(255,255,255,0.03)" }}>
+                    <p className="text-[9px] text-white/25">{item.key}</p>
+                    <p className="text-xs font-medium text-white/80">{item.value}</p>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                ))}
+              </div>
+            </div>
           </button>
         </motion.div>
       ))}
