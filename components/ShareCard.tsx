@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 interface ShareCardProps {
   characterName: string;
   characterAvatar: string;
+  characterAvatar2?: string; // 相性鑑定用: 2人目の司書画像
   characterId: string;
   userName: string;
   topicLabel: string;
@@ -21,6 +22,7 @@ interface ShareCardProps {
 export default function ShareCard({
   characterName,
   characterAvatar,
+  characterAvatar2,
   characterId,
   userName,
   topicLabel,
@@ -103,10 +105,17 @@ export default function ShareCard({
           <span style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(201,169,110,0.3)" }}>✦</span>
         </div>
 
-        {/* Character — 角丸の大きめ画像 */}
+        {/* Character */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
-          <div style={{ width: "96px", height: "96px", borderRadius: "16px", overflow: "hidden", flexShrink: 0, border: "1.5px solid rgba(201,169,110,0.25)" }}>
-            <Image src={characterAvatar} alt={characterName} width={192} height={192} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+          <div style={{ display: "flex", gap: characterAvatar2 ? "8px" : "0", flexShrink: 0 }}>
+            <div style={{ width: characterAvatar2 ? "72px" : "96px", height: characterAvatar2 ? "72px" : "96px", borderRadius: "16px", overflow: "hidden", border: "1.5px solid rgba(201,169,110,0.25)" }}>
+              <Image src={characterAvatar} alt={characterName} width={192} height={192} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+            </div>
+            {characterAvatar2 && (
+              <div style={{ width: "72px", height: "72px", borderRadius: "16px", overflow: "hidden", border: "1.5px solid rgba(201,169,110,0.25)" }}>
+                <Image src={characterAvatar2} alt="れき" width={192} height={192} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+              </div>
+            )}
           </div>
           <div>
             <p style={{ fontSize: "15px", color: "rgba(232,224,208,0.7)", margin: 0, fontFamily: "serif", fontWeight: "bold" }}>{characterName}が読んだ</p>

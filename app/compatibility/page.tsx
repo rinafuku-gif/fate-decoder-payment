@@ -85,6 +85,17 @@ export default function CompatibilityPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [step]);
 
+  // 結果画面でページ離脱時に確認
+  useEffect(() => {
+    if (screen !== "result") return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "ダウンロードはお済みですか？ページを離れると結果が失われます。";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [screen]);
+
   const STEPS: Step[] = ["type-select", "person1", "person2", "confirm"];
   const currentStepIndex = STEPS.indexOf(step);
 
@@ -351,7 +362,8 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
 
           <ShareCard
             characterName="うらら＆れき"
-            characterAvatar={uraraConfig.avatar}
+            characterAvatar="/urara-full.png"
+            characterAvatar2="/reki-full.png"
             characterId="urara"
             userName={`${result.name1} × ${result.name2}`}
             topicLabel="相性鑑定"
@@ -359,10 +371,23 @@ ${isGeneral ? `5. loveStory: 300〜400文字\n6. businessStory: 300〜400文字\
             siteUrl={typeof window !== "undefined" ? window.location.origin : ""}
           />
 
-          <div className="mt-6">
+          {/* 注意書き */}
+          <p className="text-center text-[11px] text-white/30 mt-2 mb-4">
+            …ページを閉じるとダウンロードできなくなるよ。忘れずに保存しておいてね
+          </p>
+
+          {/* ボタン */}
+          <div className="space-y-3 mt-4 no-print">
+            <button
+              onClick={() => window.print()}
+              className="w-full py-3 rounded-full text-sm font-medium transition-all"
+              style={{ background: "rgba(201,169,110,0.15)", border: "1px solid rgba(201,169,110,0.3)", color: "#c9a96e" }}
+            >
+              全文をPDF保存
+            </button>
             <button
               onClick={() => router.push(ref ? `/?ref=${ref}` : "/")}
-              className="w-full py-2.5 rounded-full border border-white/10 text-sm text-white/50 hover:bg-white/5 transition-colors"
+              className="w-full py-2.5 rounded-full border border-white/10 text-sm text-white/40 hover:bg-white/5 transition-colors"
             >
               トップへ戻る
             </button>

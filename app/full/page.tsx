@@ -119,6 +119,17 @@ export default function FullPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [step]);
 
+  // 結果画面でページ離脱時に確認
+  useEffect(() => {
+    if (screen !== "result") return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "ダウンロードはお済みですか？ページを離れると結果が失われます。";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [screen]);
+
   const currentStepIndex = STEPS.indexOf(step);
   const charId = character || "urara";
   const charConfig = CHARACTER_CONFIG[charId];
@@ -415,8 +426,15 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
           {/* 本文 */}
           <div dangerouslySetInnerHTML={{ __html: resultHtml }} />
 
+          {/* 注意書き */}
+          <p className="text-center text-[11px] text-white/30 mt-2 mb-4 no-print">
+            {charId === "reki"
+              ? "…ページ閉じたらもうダウンロードできないからね。保存は今のうちに"
+              : "…ページを閉じるとダウンロードできなくなるよ。忘れずに保存しておいてね"}
+          </p>
+
           {/* ボタン */}
-          <div className="space-y-3 mt-6 no-print">
+          <div className="space-y-3 mt-4 no-print">
             <button
               onClick={() => window.print()}
               className="w-full py-3 rounded-full text-sm font-medium transition-all"
