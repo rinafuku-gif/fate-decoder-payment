@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { db } from "@/lib/db";
 import { diagnoses } from "@/drizzle/schema";
 import { sql } from "drizzle-orm";
 
-export async function GET(request: NextRequest) {
-  // 認証
-  const auth = request.headers.get("authorization");
+function verifyBearer(request: NextRequest): boolean {
   const secret = process.env.ADMIN_SECRET;
-  if (!secret) {
-    return NextResponse.json({ error: "ADMIN_SECRET not configured" }, { status: 500 });
-  }
-  if (auth !== `Bearer ${secret}`) {
+  if (!secret) return false;
+  const auth = request.headers.get("authorization");
+  if (!auth) return false;
+  const token = auth.replace("Bearer ", "");
+  if (token.length !== secret.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(secret));
+}
+
+export async function GET(request: NextRequest) {
+  if (!verifyBearer(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

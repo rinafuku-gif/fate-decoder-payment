@@ -13,6 +13,7 @@ import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
 import ShareCard from "@/components/ShareCard";
 import FortuneCards from "@/components/FortuneCards";
+import DOMPurify from "isomorphic-dompurify";
 
 function LoadingText({ stages }: { stages: { text: string; delay: number }[] }) {
   const [index, setIndex] = useState(0);
@@ -438,7 +439,7 @@ ${form.birthHour ? (form.birthPlace ? "8" : "7") : (form.birthPlace ? "7" : "6")
           </div>
 
           {/* 本文 */}
-          <div dangerouslySetInnerHTML={{ __html: resultHtml }} />
+          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(resultHtml) }} />
 
           {/* 注意書き */}
           <p className="text-center text-[11px] text-white/30 mt-2 mb-4 no-print">

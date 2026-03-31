@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { diagnoses, locations, kickbackPayments } from "@/drizzle/schema";
 import { sql, eq, and, gte, lt } from "drizzle-orm";
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 export async function POST() {
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -49,13 +53,13 @@ export async function POST() {
           星の図書館 キックバック明細書
         </h1>
         <table style="width: 100%; margin: 20px 0; font-size: 14px;">
-          <tr><td style="color: #666;">設置場所</td><td style="text-align: right; font-weight: bold;">${loc.name}</td></tr>
+          <tr><td style="color: #666;">設置場所</td><td style="text-align: right; font-weight: bold;">${escapeHtml(loc.name)}</td></tr>
           <tr><td style="color: #666;">対象期間</td><td style="text-align: right;">${startStr} 〜 ${endStr}</td></tr>
           <tr><td style="color: #666;">有料診断件数</td><td style="text-align: right;">${count}件</td></tr>
           <tr><td style="color: #666;">単価</td><td style="text-align: right;">¥${loc.kickbackRate} / 件</td></tr>
           <tr style="border-top: 1px solid #ddd;"><td style="color: #666; padding-top: 8px;">お支払金額</td><td style="text-align: right; padding-top: 8px; font-size: 20px; font-weight: bold; color: #7c3aed;">¥${amount.toLocaleString()}</td></tr>
         </table>
-        ${loc.contactName ? `<p style="font-size: 12px; color: #999;">宛先: ${loc.contactName} 様</p>` : ""}
+        ${loc.contactName ? `<p style="font-size: 12px; color: #999;">宛先: ${escapeHtml(loc.contactName)} 様</p>` : ""}
         <p style="font-size: 11px; color: #ccc; margin-top: 40px; text-align: center;">
           発行: SATOYAMA AI BASE / 星の図書館
         </p>
