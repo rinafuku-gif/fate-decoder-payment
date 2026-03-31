@@ -26,9 +26,7 @@ function LoadingText({ stages }: { stages: { text: string; delay: number }[] }) 
   return <p className="text-sm text-white/80">{stages[index]?.text}</p>;
 }
 
-// テストモード: trueなら決済なしで鑑定可能。ローンチ時にfalseにする
-// TODO: 本番リリース前にfalseに変更すること
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 type Step = "name" | "birthday" | "birthtime" | "birthplace" | "concern" | "confirm";
 

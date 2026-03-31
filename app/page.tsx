@@ -47,8 +47,7 @@ const TOPIC_PROMPT_FOCUS: Record<TopicId, string> = {
 
 type Step = "intro" | "menu" | "char_select" | "ask_name" | "ask_birthday" | "ask_topic" | "loading" | "result";
 
-// テストモード（full/compatibilityページと共有）
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 export default function HomePage() {
   const router = useRouter();

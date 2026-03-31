@@ -13,9 +13,7 @@ import LibraryBg from "@/components/LibraryBg";
 import GrainOverlay from "@/components/GrainOverlay";
 import ShareCard from "@/components/ShareCard";
 
-// テストモード: trueなら決済なしで鑑定可能。ローンチ時にfalseにする
-// TODO: 本番リリース前にfalseに変更すること
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 const COMPAT_TYPES: { id: CompatibilityType; label: string; desc: string }[] = [
   { id: "love", label: "恋愛・パートナー", desc: "恋愛やパートナーシップの相性" },
