@@ -8,7 +8,10 @@ export default function PartnerPage() {
     name: "",
     contactName: "",
     contactEmail: "",
-    address: "",
+    postalCode: "",
+    prefecture: "",
+    city: "",
+    streetAddress: "",
     bankName: "",
     branchName: "",
     accountType: "普通",
@@ -172,21 +175,47 @@ export default function PartnerPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-xs mb-2 tracking-wide" style={{ color: "var(--text-secondary)" }}>
-              住所（任意）
-            </label>
-            <input
-              type="text"
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="w-full rounded-md px-4 py-3 text-sm focus:outline-none transition-colors"
-              style={{
-                backgroundColor: "var(--library-dark)",
-                border: "1px solid var(--wood-dark)",
-                color: "var(--text-primary)",
-              }}
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs mb-2 tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                郵便番号 <span style={{ color: "var(--brass)" }}>*</span>
+              </label>
+              <input type="text" required value={form.postalCode}
+                onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
+                className="w-full rounded-md px-4 py-3 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--library-dark)", border: "1px solid var(--wood-dark)", color: "var(--text-primary)" }}
+                placeholder="例: 123-4567" />
+            </div>
+            <div>
+              <label className="block text-xs mb-2 tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                都道府県 <span style={{ color: "var(--brass)" }}>*</span>
+              </label>
+              <input type="text" required value={form.prefecture}
+                onChange={(e) => setForm({ ...form, prefecture: e.target.value })}
+                className="w-full rounded-md px-4 py-3 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--library-dark)", border: "1px solid var(--wood-dark)", color: "var(--text-primary)" }}
+                placeholder="例: 山梨県" />
+            </div>
+            <div>
+              <label className="block text-xs mb-2 tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                市区町村 <span style={{ color: "var(--brass)" }}>*</span>
+              </label>
+              <input type="text" required value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                className="w-full rounded-md px-4 py-3 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--library-dark)", border: "1px solid var(--wood-dark)", color: "var(--text-primary)" }}
+                placeholder="例: 上野原市" />
+            </div>
+            <div>
+              <label className="block text-xs mb-2 tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                番地・建物名 <span style={{ color: "var(--brass)" }}>*</span>
+              </label>
+              <input type="text" required value={form.streetAddress}
+                onChange={(e) => setForm({ ...form, streetAddress: e.target.value })}
+                className="w-full rounded-md px-4 py-3 text-sm focus:outline-none"
+                style={{ backgroundColor: "var(--library-dark)", border: "1px solid var(--wood-dark)", color: "var(--text-primary)" }}
+                placeholder="例: 松留939" />
+            </div>
           </div>
 
           {/* 振込先口座情報 */}

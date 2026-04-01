@@ -15,6 +15,8 @@ function AdminContent() {
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [aggregating, setAggregating] = useState(false);
+  const [editLoc, setEditLoc] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -63,6 +65,30 @@ function AdminContent() {
     const data = await res.json();
     alert(`集計完了: ${data.created}件作成（${data.period}）`);
     setAggregating(false);
+    fetchData();
+  };
+
+  const handleSaveLocation = async () => {
+    if (!editLoc) return;
+    setSaving(true);
+    await fetch(`/api/admin/locations/${editLoc.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: editLoc.name,
+        contactName: editLoc.contactName,
+        contactEmail: editLoc.contactEmail,
+        address: editLoc.address,
+        kickbackRate: editLoc.kickbackRate,
+        bankName: editLoc.bankName,
+        branchName: editLoc.branchName,
+        accountType: editLoc.accountType,
+        accountNumber: editLoc.accountNumber,
+        accountHolder: editLoc.accountHolder,
+      }),
+    });
+    setSaving(false);
+    setEditLoc(null);
     fetchData();
   };
 
@@ -185,8 +211,10 @@ function AdminContent() {
                       {locations.filter((l: any) => l.status !== "pending").map((loc: any) => (
                         <tr key={loc.refId} className="border-t border-gray-100 hover:bg-gray-50">
                           <td className="px-4 py-3">
-                            <p className="font-medium text-gray-900">{loc.name}</p>
-                            <p className="text-xs text-gray-500 font-mono">{loc.refId}</p>
+                            <button onClick={() => setEditLoc({ ...loc })} className="text-left hover:text-purple-600 transition-colors">
+                              <p className="font-medium text-gray-900 hover:text-purple-600">{loc.name}</p>
+                              <p className="text-xs text-gray-500 font-mono">{loc.refId}</p>
+                            </button>
                           </td>
                           <td className="px-4 py-3 text-xs text-gray-700">{loc.contactName || "—"}</td>
                           <td className="px-4 py-3 text-right text-gray-800">{loc.totalDiagnoses}</td>
@@ -306,6 +334,83 @@ function AdminContent() {
           </>
         )}
       </div>
+
+      {/* Edit Location Modal */}
+      {editLoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setEditLoc(null)}>
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h3 className="text-base font-semibold text-gray-800">場所情報の編集</h3>
+              <button onClick={() => setEditLoc(null)} className="text-gray-400 hover:text-gray-600 text-lg">×</button>
+            </div>
+            <div className="px-6 py-4 space-y-4">
+              {[
+                { key: "name", label: "場所名" },
+                { key: "contactName", label: "担当者名" },
+                { key: "contactEmail", label: "メール" },
+                { key: "address", label: "住所" },
+              ].map(({ key, label }) => (
+                <div key={key}>
+                  <label className="block text-xs text-gray-600 mb-1">{label}</label>
+                  <input
+                    value={editLoc[key] || ""}
+                    onChange={(e) => setEditLoc({ ...editLoc, [key]: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"
+                  />
+                </div>
+              ))}
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">キックバック率（円/件）</label>
+                <input
+                  type="number"
+                  value={editLoc.kickbackRate || 50}
+                  onChange={(e) => setEditLoc({ ...editLoc, kickbackRate: parseInt(e.target.value) || 0 })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"
+                />
+              </div>
+              <div className="pt-2 border-t border-gray-100">
+                <p className="text-xs text-purple-600 font-medium mb-3">振込先口座</p>
+                {[
+                  { key: "bankName", label: "金融機関名" },
+                  { key: "branchName", label: "支店名" },
+                  { key: "accountNumber", label: "口座番号" },
+                  { key: "accountHolder", label: "口座名義（カナ）" },
+                ].map(({ key, label }) => (
+                  <div key={key} className="mb-3">
+                    <label className="block text-xs text-gray-600 mb-1">{label}</label>
+                    <input
+                      value={editLoc[key] || ""}
+                      onChange={(e) => setEditLoc({ ...editLoc, [key]: e.target.value })}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"
+                    />
+                  </div>
+                ))}
+                <div className="mb-3">
+                  <label className="block text-xs text-gray-600 mb-1">口座種別</label>
+                  <select
+                    value={editLoc.accountType || "普通"}
+                    onChange={(e) => setEditLoc({ ...editLoc, accountType: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"
+                  >
+                    <option value="普通">普通</option>
+                    <option value="当座">当座</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200">
+              <button onClick={() => setEditLoc(null)} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">キャンセル</button>
+              <button
+                onClick={handleSaveLocation}
+                disabled={saving}
+                className="px-4 py-2 text-sm rounded-lg bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50"
+              >
+                {saving ? "保存中..." : "保存"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

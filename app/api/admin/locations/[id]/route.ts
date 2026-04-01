@@ -16,10 +16,10 @@ export async function PATCH(
   const body = await request.json();
 
   const updates: Record<string, unknown> = {};
-  if (body.status !== undefined) updates.status = body.status;
-  if (body.isActive !== undefined) updates.isActive = body.isActive;
-  if (body.kickbackRate !== undefined) updates.kickbackRate = body.kickbackRate;
-  if (body.bankInfo !== undefined) updates.bankInfo = body.bankInfo;
+  const fields = ["status", "isActive", "kickbackRate", "bankInfo", "name", "contactName", "contactEmail", "address", "postalCode", "prefecture", "city", "streetAddress", "bankName", "branchName", "accountType", "accountNumber", "accountHolder"];
+  for (const f of fields) {
+    if (body[f] !== undefined) updates[f] = body[f];
+  }
 
   if (body.status === "approved") {
     updates.isActive = true;
