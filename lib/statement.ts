@@ -150,8 +150,6 @@ export async function buildStatementPdf(params: {
   totalAmount: number;
 }): Promise<Buffer> {
   const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib");
-  const fs = await import("fs");
-  const path = await import("path");
 
   const p = params;
   const doc = await PDFDocument.create();
@@ -159,8 +157,10 @@ export async function buildStatementPdf(params: {
   // Load Japanese font
   let font;
   try {
-    const fontPath = path.join(process.cwd(), "lib/fonts/NotoSansJP-Regular.ttf");
-    const fontBytes = fs.readFileSync(fontPath);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const fontRes = await fetch(`${appUrl}/fonts/NotoSansJP-Regular.ttf`);
+    if (!fontRes.ok) throw new Error("Font fetch failed");
+    const fontBytes = await fontRes.arrayBuffer();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fontkit = (await import("fontkit")).default as any;
     doc.registerFontkit(fontkit);
