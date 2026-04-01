@@ -9,6 +9,11 @@ export default function PartnerPage() {
     contactName: "",
     contactEmail: "",
     address: "",
+    bankName: "",
+    branchName: "",
+    accountType: "普通",
+    accountNumber: "",
+    accountHolder: "",
   });
   const [agreed, setAgreed] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
@@ -182,6 +187,65 @@ export default function PartnerPage() {
                 color: "var(--text-primary)",
               }}
             />
+          </div>
+
+          {/* 振込先口座情報 */}
+          <div className="pt-2">
+            <p className="text-xs mb-4 tracking-wide" style={{ color: "var(--brass)" }}>お振込先情報</p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs mb-2 tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                  金融機関名 <span style={{ color: "var(--brass)" }}>*</span>
+                </label>
+                <input type="text" required value={form.bankName}
+                  onChange={(e) => setForm({ ...form, bankName: e.target.value })}
+                  className="w-full rounded-md px-4 py-3 text-sm focus:outline-none"
+                  style={{ backgroundColor: "var(--library-dark)", border: "1px solid var(--wood-dark)", color: "var(--text-primary)" }}
+                  placeholder="例: 三菱UFJ銀行" />
+              </div>
+              <div>
+                <label className="block text-xs mb-2 tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                  支店名 <span style={{ color: "var(--brass)" }}>*</span>
+                </label>
+                <input type="text" required value={form.branchName}
+                  onChange={(e) => setForm({ ...form, branchName: e.target.value })}
+                  className="w-full rounded-md px-4 py-3 text-sm focus:outline-none"
+                  style={{ backgroundColor: "var(--library-dark)", border: "1px solid var(--wood-dark)", color: "var(--text-primary)" }}
+                  placeholder="例: 渋谷支店" />
+              </div>
+              <div>
+                <label className="block text-xs mb-2 tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                  口座種別 <span style={{ color: "var(--brass)" }}>*</span>
+                </label>
+                <select value={form.accountType}
+                  onChange={(e) => setForm({ ...form, accountType: e.target.value })}
+                  className="w-full rounded-md px-4 py-3 text-sm focus:outline-none"
+                  style={{ backgroundColor: "var(--library-dark)", border: "1px solid var(--wood-dark)", color: "var(--text-primary)" }}>
+                  <option value="普通">普通</option>
+                  <option value="当座">当座</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs mb-2 tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                  口座番号 <span style={{ color: "var(--brass)" }}>*</span>
+                </label>
+                <input type="text" required value={form.accountNumber}
+                  onChange={(e) => setForm({ ...form, accountNumber: e.target.value })}
+                  className="w-full rounded-md px-4 py-3 text-sm focus:outline-none"
+                  style={{ backgroundColor: "var(--library-dark)", border: "1px solid var(--wood-dark)", color: "var(--text-primary)" }}
+                  placeholder="例: 1234567" />
+              </div>
+              <div>
+                <label className="block text-xs mb-2 tracking-wide" style={{ color: "var(--text-secondary)" }}>
+                  口座名義（カナ） <span style={{ color: "var(--brass)" }}>*</span>
+                </label>
+                <input type="text" required value={form.accountHolder}
+                  onChange={(e) => setForm({ ...form, accountHolder: e.target.value })}
+                  className="w-full rounded-md px-4 py-3 text-sm focus:outline-none"
+                  style={{ backgroundColor: "var(--library-dark)", border: "1px solid var(--wood-dark)", color: "var(--text-primary)" }}
+                  placeholder="例: テスト タロウ" />
+              </div>
+            </div>
           </div>
 
           <div

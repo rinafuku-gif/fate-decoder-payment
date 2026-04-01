@@ -13,9 +13,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, contactName, contactEmail, address, kickbackRate } = body;
+    const { name, contactName, contactEmail, address, kickbackRate, bankName, branchName, accountType, accountNumber, accountHolder } = body;
 
-    if (!name || !contactName || !contactEmail) {
+    if (!name || !contactName || !contactEmail || !bankName || !branchName || !accountType || !accountNumber || !accountHolder) {
       return NextResponse.json({ error: "必須項目が不足しています" }, { status: 400 });
     }
 
@@ -27,7 +27,12 @@ export async function POST(request: NextRequest) {
       contactName,
       contactEmail,
       address: address || null,
-      bankInfo: null,
+      bankInfo: `${bankName} ${branchName} ${accountType} ${accountNumber} ${accountHolder}`,
+      bankName,
+      branchName,
+      accountType,
+      accountNumber,
+      accountHolder,
       kickbackRate: kickbackRate || 50,
       status: "pending",
       isActive: false,
@@ -42,7 +47,7 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           type: "partner_application",
           subject: `【星の図書館】新しい掲示パートナー申し込み - ${name}`,
-          body: `場所名: ${name}\n担当者: ${contactName}\nメール: ${contactEmail}\n住所: ${address || "未入力"}\nキックバック希望額: ¥${kickbackRate || 50}/件`,
+          body: `場所名: ${name}\n担当者: ${contactName}\nメール: ${contactEmail}\n住所: ${address || "未入力"}\n\n【振込先】\n金融機関: ${bankName}\n支店: ${branchName}\n種別: ${accountType}\n口座番号: ${accountNumber}\n名義: ${accountHolder}`,
         }),
       }).catch(() => {});
     }

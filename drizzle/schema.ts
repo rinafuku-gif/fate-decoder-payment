@@ -8,6 +8,11 @@ export const locations = sqliteTable("locations", {
   contactEmail: text("contact_email"),
   address: text("address"),
   bankInfo: text("bank_info"),
+  bankName: text("bank_name"),
+  branchName: text("branch_name"),
+  accountType: text("account_type"),
+  accountNumber: text("account_number"),
+  accountHolder: text("account_holder"),
   kickbackRate: integer("kickback_rate").notNull().default(50),
   carriedOverAmount: integer("carried_over_amount").notNull().default(0),
   status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
