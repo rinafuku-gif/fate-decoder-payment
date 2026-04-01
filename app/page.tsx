@@ -101,7 +101,34 @@ export default function HomePage() {
       const config = CHARACTER_CONFIG[character];
       const topicFocus = TOPIC_PROMPT_FOCUS[currentTopic];
       const topicLabel = TOPICS.find(t => t.id === currentTopic)?.label || "";
-      const prompt = `${config.promptStyle}\n\n以下の人物の6占術データから、あなた（${config.name}）の口調で【${topicLabel}】の診断結果を書いてください。\n\n【テーマ】${topicFocus}\n\n【対象者】${name} (${year}年${month}月${day}日生まれ)\n【占術データ】マヤ暦:KIN${data.maya.kin}/紋章:${data.maya.glyph}/音:${data.maya.tone}/WS:${data.maya.ws} 算命学:[${data.bazi.weapon}] 四柱推命:年柱[${data.sanmeigaku.year}]/月柱[${data.sanmeigaku.month}]/日柱[${data.sanmeigaku.day}]/日干[${data.bazi.stem}] 数秘:LP${data.numerology.lp} 西洋:${data.western.sign} 宿曜:${data.sukuyo}\n\n【出力ルール】\n1. section1: 200-300文字。占術データを2つ以上引用\n2. section2: 200-300文字\n3. section3: 200-300文字\n4. oneWord: この人を一言で表す言葉。8-15文字\n5. bookTitle: ${name}の${topicLabel}についての本のタイトル。「〜の記録」「〜の地図」「〜の季節」形式で14-20文字以内。例「追いかけてしまう人の、恋の地図」\n6. action: 今日からできるアクション。20-40文字\n7. luckyItem: 具体的に\n\n**必ず純粋なJSON**\n{"oneWord":"","bookTitle":"","section1":"","section2":"","section3":"","action":"","luckyItem":""}`;
+      const prompt = `${config.promptStyle}
+
+以下の人物の6占術データから、あなた（${config.name}）の口調で【${topicLabel}】の診断結果を書いてください。
+
+【テーマ】${topicFocus}
+
+【対象者】${name} (${year}年${month}月${day}日生まれ)
+【占術データ】マヤ暦:KIN${data.maya.kin}/紋章:${data.maya.glyph}/音:${data.maya.tone}/WS:${data.maya.ws} 算命学:[${data.bazi.weapon}] 四柱推命:年柱[${data.sanmeigaku.year}]/月柱[${data.sanmeigaku.month}]/日柱[${data.sanmeigaku.day}]/日干[${data.bazi.stem}] 数秘:LP${data.numerology.lp} 西洋:${data.western.sign} 宿曜:${data.sukuyo}
+
+【重要：品質ルール】
+・占いを信じていない人でも「面白い」「当たってる」と思えるような、具体性のある文章にすること
+・「あなたは優しい人です」のような誰にでも当てはまる抽象的な表現は禁止
+・この人の生年月日から導き出された占術データに基づく、この人だけに当てはまる具体的な特徴やアドバイスを書くこと
+・占術データ（KIN番号、紋章名、日干、ライフパスナンバー等）を引用して根拠を示すこと
+
+【出力ルール】
+1. section1: 250〜350文字。占術データを2つ以上引用し、この人の本質的な性質を具体的に描写
+2. section2: 250〜350文字。テーマに沿った具体的な状況分析と洞察
+3. section3: 250〜350文字。今後の展望と具体的な行動アドバイス
+4. oneWord: この人を一言で表す言葉。8-15文字。ありきたりな言葉は避ける
+5. bookTitle: ${name}の${topicLabel}についての本のタイトル。「〜の記録」「〜の地図」「〜の季節」形式で14-20文字以内。例「追いかけてしまう人の、恋の地図」
+6. action: 今日からできる具体的なアクション。20-40文字
+7. luckyItem: その人の占術データに関連する具体的なアイテム
+
+※各セクションは必ず250文字以上書くこと。短い文章は不可。
+
+**必ず純粋なJSON**
+{"oneWord":"","bookTitle":"","section1":"","section2":"","section3":"","action":"","luckyItem":""}`;
       let parsed: any = {};
       try {
         const text = await generateFortune(prompt);

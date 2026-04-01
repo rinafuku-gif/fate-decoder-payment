@@ -7,7 +7,7 @@ export async function generateFortune(prompt: string) {
     throw new Error('鑑定の準備ができていません。しばらくお待ちください。')
   }
 
-  const modelName = 'gemini-flash-latest'
+  const modelName = 'gemini-2.0-flash'
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`
 
   const response = await fetch(url, {
