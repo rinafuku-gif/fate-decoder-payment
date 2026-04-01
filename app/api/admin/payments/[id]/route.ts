@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { kickbackPayments, locations } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import nodemailer from "nodemailer";
-import { buildStatementText, generateStatementNumber, formatDateJP } from "@/lib/statement";
+import { buildStatementText, buildStatementPdf, generateStatementNumber, formatDateJP } from "@/lib/statement";
 
 export async function PATCH(
   request: NextRequest,
@@ -49,6 +49,25 @@ export async function PATCH(
             totalAmount: payment.amount,
           });
 
+          let pdfBuffer: Buffer | null = null;
+          try {
+            pdfBuffer = await buildStatementPdf({
+              statementNumber,
+              issuedDate: formatDateJP(new Date().toISOString().split("T")[0]),
+              contactName: loc.contactName || "",
+              locationName: loc.name,
+              periodStart: payment.periodStart,
+              periodEnd: payment.periodEnd,
+              count: payment.diagnosisCount,
+              unitRate: payment.unitAmount,
+              monthlyAmount,
+              carriedOver: carriedOver > 0 ? carriedOver : 0,
+              totalAmount: payment.amount,
+            });
+          } catch (pdfErr) {
+            console.error("PDF generation failed:", pdfErr);
+          }
+
           await sendPaymentNotification(
             loc.contactEmail,
             loc.contactName || loc.name,
@@ -56,6 +75,8 @@ export async function PATCH(
             payment.periodEnd,
             payment.amount,
             statementText,
+            statementNumber,
+            pdfBuffer,
           );
         }
       }
@@ -68,7 +89,7 @@ export async function PATCH(
 }
 
 async function sendPaymentNotification(
-  to: string, name: string, periodStart: string, periodEnd: string, amount: number, statementText: string
+  to: string, name: string, periodStart: string, periodEnd: string, amount: number, statementText: string, statementNumber?: string, pdfBuffer?: Buffer | null
 ) {
   const user = process.env.GMAIL_USER;
   const pass = process.env.GMAIL_APP_PASSWORD;
@@ -79,7 +100,7 @@ async function sendPaymentNotification(
     auth: { user, pass },
   });
 
-  await transporter.sendMail({
+  const mailOptions: nodemailer.SendMailOptions = {
     from: `星の図書館 <${user}>`,
     to,
     subject: `【星の図書館】${periodStart}〜${periodEnd} のお支払いが完了しました`,
@@ -89,7 +110,7 @@ async function sendPaymentNotification(
 星の図書館です。
 
 ${periodStart} 〜 ${periodEnd} 分の紹介料のお支払いが完了しました。
-以下に支払明細書を添付いたします。
+以下に支払明細書を記載いたします。${pdfBuffer ? "\nPDFファイルも添付しております。" : ""}
 
 ${statementText}
 
@@ -100,5 +121,17 @@ ${statementText}
 星の図書館
 SATOYAMA AI BASE
 r.inafuku@tonari2tomaru.com`.trim(),
-  });
+  };
+
+  if (pdfBuffer && statementNumber) {
+    mailOptions.attachments = [
+      {
+        filename: `支払明細書_${statementNumber}.pdf`,
+        content: pdfBuffer,
+        contentType: "application/pdf",
+      },
+    ];
+  }
+
+  await transporter.sendMail(mailOptions);
 }
