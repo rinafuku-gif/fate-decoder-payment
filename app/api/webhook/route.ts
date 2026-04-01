@@ -38,6 +38,8 @@ export async function POST(request: NextRequest) {
       const ref = session.metadata?.ref || "direct";
       const mode = session.metadata?.mode || "unknown";
       const utmSource = session.metadata?.utm_source || "";
+      const utmMedium = session.metadata?.utm_medium || "";
+      const utmCampaign = session.metadata?.utm_campaign || "";
       const REFERRAL_FEE = 50; // 円 — 全モード共通。変更時はここだけ修正
 
       console.log("[Webhook] Payment completed:", {
@@ -57,6 +59,9 @@ export async function POST(request: NextRequest) {
             mode,
             paidAmount: Math.round((session.amount_total || 0) / 1),
             stripeSessionId: session.id,
+            utmSource: utmSource || null,
+            utmMedium: utmMedium || null,
+            utmCampaign: utmCampaign || null,
             createdAt: new Date().toISOString(),
           });
         } else {

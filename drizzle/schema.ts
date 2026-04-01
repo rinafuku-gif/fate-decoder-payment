@@ -35,6 +35,7 @@ export const diagnoses = sqliteTable("diagnoses", {
   stripeSessionId: text("stripe_session_id").unique(),
   utmSource: text("utm_source"),
   utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
   deviceType: text("device_type"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });

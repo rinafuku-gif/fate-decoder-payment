@@ -16,6 +16,8 @@ export async function POST(request: NextRequest) {
     const mode = body.mode as "full" | "compatibility";
     const ref = body.ref || "direct";
     const utmSource = body.utmSource || null;
+    const utmMedium = body.utmMedium || null;
+    const utmCampaign = body.utmCampaign || null;
 
     const priceId =
       mode === "compatibility"
@@ -41,6 +43,8 @@ export async function POST(request: NextRequest) {
         mode,
         ref,
         utm_source: utmSource || "",
+        utm_medium: utmMedium || "",
+        utm_campaign: utmCampaign || "",
       },
     });
 

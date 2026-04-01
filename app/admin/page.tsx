@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-type Tab = "overview" | "locations" | "diagnoses" | "payments";
+type Tab = "overview" | "locations" | "diagnoses" | "payments" | "analytics";
 
 function AdminContent() {
   const router = useRouter();
@@ -17,6 +17,8 @@ function AdminContent() {
   const [aggregating, setAggregating] = useState(false);
   const [editLoc, setEditLoc] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [analyticsPeriod, setAnalyticsPeriod] = useState("all");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -37,10 +39,14 @@ function AdminContent() {
         const res = await fetch("/api/admin/payments");
         if (res.status === 401) { router.push("/admin/login"); return; }
         setPayments(await res.json());
+      } else if (tab === "analytics") {
+        const res = await fetch(`/api/admin/analytics?period=${analyticsPeriod}`);
+        if (res.status === 401) { router.push("/admin/login"); return; }
+        setAnalytics(await res.json());
       }
     } catch { /* network error */ }
     setLoading(false);
-  }, [tab, router]);
+  }, [tab, router, analyticsPeriod]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -106,6 +112,7 @@ function AdminContent() {
     { id: "overview", label: "概要" },
     { id: "locations", label: "場所別" },
     { id: "diagnoses", label: "診断ログ" },
+    { id: "analytics", label: "流入分析" },
     { id: "payments", label: "支払管理" },
   ];
 
@@ -275,6 +282,108 @@ function AdminContent() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* Analytics */}
+            {tab === "analytics" && analytics && (
+              <div className="space-y-4">
+                {/* Period filter */}
+                <div className="flex gap-2">
+                  {[
+                    { id: "all", label: "全期間" },
+                    { id: "month", label: "今月" },
+                    { id: "last_month", label: "先月" },
+                  ].map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => { setAnalyticsPeriod(p.id); }}
+                      className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${analyticsPeriod === p.id ? "bg-purple-100 text-purple-700 font-medium" : "text-gray-600 hover:bg-gray-100"}`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Overall stats */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <p className="text-xs text-gray-600">総診断</p>
+                    <p className="text-xl font-bold text-gray-900">{analytics.totals.total}</p>
+                  </div>
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <p className="text-xs text-gray-600">有料診断</p>
+                    <p className="text-xl font-bold text-purple-700">{analytics.totals.paid}</p>
+                  </div>
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <p className="text-xs text-gray-600">コンバージョン率</p>
+                    <p className="text-xl font-bold text-green-700">{analytics.totals.conversionRate}%</p>
+                  </div>
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <p className="text-xs text-gray-600">売上</p>
+                    <p className="text-xl font-bold text-gray-900">¥{analytics.totals.revenue.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                {/* Channel tables */}
+                {["own", "referral", "organic"].map((cat) => {
+                  const items = analytics.channels.filter((c: any) => c.category === cat);
+                  if (items.length === 0) return null;
+                  const label = cat === "own" ? "自社チャネル" : cat === "referral" ? "パートナー（リファラル）" : "オーガニック";
+                  return (
+                    <div key={cat} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                      <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+                        <span className="text-xs font-semibold text-gray-700">{label}</span>
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-100 text-gray-700 text-xs font-semibold">
+                          <tr>
+                            <th className="text-left px-4 py-2">流入元</th>
+                            <th className="text-right px-4 py-2">無料</th>
+                            <th className="text-right px-4 py-2">有料</th>
+                            <th className="text-right px-4 py-2">CVR</th>
+                            <th className="text-right px-4 py-2">売上</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {items.map((c: any) => (
+                            <tr key={`${c.source}-${c.medium}`} className="border-t border-gray-100 hover:bg-gray-50">
+                              <td className="px-4 py-2 text-gray-800">
+                                {c.source}
+                                {c.medium && <span className="text-xs text-gray-500 ml-1">({c.medium})</span>}
+                              </td>
+                              <td className="px-4 py-2 text-right text-gray-800">{c.total - c.paid}</td>
+                              <td className="px-4 py-2 text-right text-purple-700 font-medium">{c.paid}</td>
+                              <td className="px-4 py-2 text-right text-green-700">{c.conversionRate}%</td>
+                              <td className="px-4 py-2 text-right text-gray-900 font-medium">¥{c.revenue.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })}
+
+                {/* URL Generator */}
+                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <p className="text-xs font-semibold text-gray-700 mb-3">SNS用URL生成</p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {["instagram", "x", "facebook", "note", "line"].map((src) => (
+                      <button
+                        key={src}
+                        onClick={() => {
+                          const url = `https://hoshinotoshokan.vercel.app/?utm_source=${src}&utm_medium=sns`;
+                          navigator.clipboard.writeText(url);
+                          alert(`コピーしました:\n${url}`);
+                        }}
+                        className="px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+                      >
+                        {src}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-gray-500">ボタンをクリックするとUTM付きURLがクリップボードにコピーされます</p>
+                </div>
               </div>
             )}
 

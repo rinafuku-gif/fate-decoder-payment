@@ -78,8 +78,10 @@ export default function HomePage() {
     // UTMパラメータをsessionStorageに保存
     const utmS = params.get("utm_source");
     const utmM = params.get("utm_medium");
+    const utmC = params.get("utm_campaign");
     if (utmS) sessionStorage.setItem("fd_utm_source", utmS);
     if (utmM) sessionStorage.setItem("fd_utm_medium", utmM);
+    if (utmC) sessionStorage.setItem("fd_utm_campaign", utmC);
     setTimeout(() => setIntroReady(true), 500);
   }, []);
 
@@ -110,7 +112,7 @@ export default function HomePage() {
       } catch {
         parsed = { oneWord: "…面白い星の配置", bookTitle: "星が語る、あなたの記録", section1: `…${data.maya.glyph}の紋章。芯が強い。`, section2: `${data.western.sign}のあなたは深い絆を求める。`, section3: `「${data.bazi.weapon}」を持ってる。`, action: "…朝5分、深呼吸してみて", luckyItem: "温かい飲み物" };
       }
-      fetch("/api/log-diagnosis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ref: ref || "direct", mode: "short", topic: currentTopic, name, birthDate: `${year}-${String(parseInt(month)).padStart(2, "0")}-${String(parseInt(day)).padStart(2, "0")}`, utmSource: sessionStorage.getItem("fd_utm_source"), utmMedium: sessionStorage.getItem("fd_utm_medium"), deviceType: /Mobi/i.test(navigator.userAgent) ? "mobile" : "desktop" }) }).catch(() => {});
+      fetch("/api/log-diagnosis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ref: ref || "direct", mode: "short", topic: currentTopic, name, birthDate: `${year}-${String(parseInt(month)).padStart(2, "0")}-${String(parseInt(day)).padStart(2, "0")}`, utmSource: sessionStorage.getItem("fd_utm_source"), utmMedium: sessionStorage.getItem("fd_utm_medium"), utmCampaign: sessionStorage.getItem("fd_utm_campaign"), deviceType: /Mobi/i.test(navigator.userAgent) ? "mobile" : "desktop" }) }).catch(() => {});
       setResult({ ...parsed, data, name, topic: currentTopic });
       setStep("result");
       playReveal();
@@ -404,7 +406,7 @@ export default function HomePage() {
                         const res = await fetch("/api/checkout", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ mode: "full", ref: ref || "direct", utmSource: new URLSearchParams(window.location.search).get("utm_source") }),
+                          body: JSON.stringify({ mode: "full", ref: ref || "direct", utmSource: sessionStorage.getItem("fd_utm_source"), utmMedium: sessionStorage.getItem("fd_utm_medium"), utmCampaign: sessionStorage.getItem("fd_utm_campaign") }),
                         });
                         const data = await res.json();
                         if (data.url) window.location.href = data.url;
@@ -441,7 +443,7 @@ export default function HomePage() {
                         const res = await fetch("/api/checkout", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ mode: "compatibility", ref: ref || "direct", utmSource: new URLSearchParams(window.location.search).get("utm_source") }),
+                          body: JSON.stringify({ mode: "compatibility", ref: ref || "direct", utmSource: sessionStorage.getItem("fd_utm_source"), utmMedium: sessionStorage.getItem("fd_utm_medium"), utmCampaign: sessionStorage.getItem("fd_utm_campaign") }),
                         });
                         const data = await res.json();
                         if (data.url) window.location.href = data.url;
