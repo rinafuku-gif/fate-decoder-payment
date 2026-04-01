@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
       width: 400,
       margin: 2,
       color: {
-        dark: "#7c3aed",
-        light: "#ffffff",
+        dark: "#ffffff",
+        light: "#00000000",
       },
     });
 

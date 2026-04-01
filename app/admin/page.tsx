@@ -199,7 +199,7 @@ function AdminContent() {
                           <td className="px-4 py-3 text-center">
                             <a
                               href={`/api/qr?ref=${loc.refId}`}
-                              download={`qr-${loc.refId}.png`}
+                              download={`${loc.name}_${loc.refId}.png`}
                               className="text-xs text-purple-600 hover:underline"
                             >
                               DL
