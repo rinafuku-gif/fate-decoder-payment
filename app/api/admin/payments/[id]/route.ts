@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { kickbackPayments, locations } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import nodemailer from "nodemailer";
-import { buildStatementText, buildStatementPdf, generateStatementNumber, formatDateJP } from "@/lib/statement";
+import { buildStatementText, buildStatementHtml, generateStatementNumber, formatDateJP } from "@/lib/statement";
 
 export async function PATCH(
   request: NextRequest,
@@ -49,24 +49,19 @@ export async function PATCH(
             totalAmount: payment.amount,
           });
 
-          let pdfBuffer: Buffer | null = null;
-          try {
-            pdfBuffer = await buildStatementPdf({
-              statementNumber,
-              issuedDate: formatDateJP(new Date().toISOString().split("T")[0]),
-              contactName: loc.contactName || "",
-              locationName: loc.name,
-              periodStart: payment.periodStart,
-              periodEnd: payment.periodEnd,
-              count: payment.diagnosisCount,
-              unitRate: payment.unitAmount,
-              monthlyAmount,
-              carriedOver: carriedOver > 0 ? carriedOver : 0,
-              totalAmount: payment.amount,
-            });
-          } catch (pdfErr) {
-            console.error("PDF generation failed:", pdfErr);
-          }
+          const htmlContent = `<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>支払明細書 ${statementNumber}</title></head><body>${buildStatementHtml({
+            statementNumber,
+            issuedDate: formatDateJP(new Date().toISOString().split("T")[0]),
+            contactName: loc.contactName || "",
+            locationName: loc.name,
+            periodStart: payment.periodStart,
+            periodEnd: payment.periodEnd,
+            count: payment.diagnosisCount,
+            unitRate: payment.unitAmount,
+            monthlyAmount,
+            carriedOver: carriedOver > 0 ? carriedOver : 0,
+            totalAmount: payment.amount,
+          })}</body></html>`;
 
           await sendPaymentNotification(
             loc.contactEmail,
@@ -76,7 +71,7 @@ export async function PATCH(
             payment.amount,
             statementText,
             statementNumber,
-            pdfBuffer,
+            htmlContent,
           );
         }
       }
@@ -89,7 +84,7 @@ export async function PATCH(
 }
 
 async function sendPaymentNotification(
-  to: string, name: string, periodStart: string, periodEnd: string, amount: number, statementText: string, statementNumber?: string, pdfBuffer?: Buffer | null
+  to: string, name: string, periodStart: string, periodEnd: string, amount: number, statementText: string, statementNumber?: string, htmlAttachment?: string
 ) {
   const user = process.env.GMAIL_USER;
   const pass = process.env.GMAIL_APP_PASSWORD;
@@ -107,10 +102,10 @@ async function sendPaymentNotification(
     text: `${name} 様
 
 いつもお世話になっております。
-星の図書館です。
+星の図書館（SATOYAMA AI BASE）です。
 
 ${periodStart} 〜 ${periodEnd} 分の紹介料のお支払いが完了しました。
-以下に支払明細書を記載いたします。${pdfBuffer ? "\nPDFファイルも添付しております。" : ""}
+以下に支払明細書を記載いたします。${htmlAttachment ? "\n明細書ファイルも添付しております。" : ""}
 
 ${statementText}
 
@@ -118,17 +113,16 @@ ${statementText}
 
 今後ともよろしくお願いいたします。
 
-星の図書館
-SATOYAMA AI BASE
+星の図書館（SATOYAMA AI BASE）
 satoyama-ai-base@tonari2tomaru.com`.trim(),
   };
 
-  if (pdfBuffer && statementNumber) {
+  if (htmlAttachment && statementNumber) {
     mailOptions.attachments = [
       {
-        filename: `支払明細書_${statementNumber}.pdf`,
-        content: pdfBuffer,
-        contentType: "application/pdf",
+        filename: `支払明細書_${statementNumber}.html`,
+        content: htmlAttachment,
+        contentType: "text/html; charset=utf-8",
       },
     ];
   }

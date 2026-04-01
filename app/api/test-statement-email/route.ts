@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { buildStatementText, buildStatementPdf, formatDateJP } from "@/lib/statement";
+import { buildStatementText, buildStatementHtml, formatDateJP } from "@/lib/statement";
 
 export async function GET(request: NextRequest) {
   const testKey = request.nextUrl.searchParams.get("key");
-  if (testKey !== "test-pdf-2026-04-01") {
+  if (testKey !== "test-html-2026-04-01") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -29,13 +29,7 @@ export async function GET(request: NextRequest) {
   };
 
   const statementText = buildStatementText(params);
-  let pdfBuffer: Buffer | null = null;
-  let pdfError = "";
-  try {
-    pdfBuffer = await buildStatementPdf(params);
-  } catch (err) {
-    pdfError = err instanceof Error ? err.message + " | " + err.stack?.split("\n")[1] : String(err);
-  }
+  const htmlContent = `<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>支払明細書 ${params.statementNumber}</title></head><body>${buildStatementHtml(params)}</body></html>`;
 
   try {
     const transporter = nodemailer.createTransport({
@@ -46,21 +40,20 @@ export async function GET(request: NextRequest) {
     const info = await transporter.sendMail({
       from: `星の図書館 <${user}>`,
       to: "satoyama-ai-base@tonari2tomaru.com",
-      subject: "【星の図書館】テスト: 2026年3月分 お支払い完了（PDF添付版）",
-      text: `テスト太郎 様\n\nいつもお世話になっております。\n星の図書館です。\n\n2026年3月分の紹介料のお支払いが完了しました。\n以下に支払明細書を記載いたします。${pdfBuffer ? "\nPDFファイルも添付しております。" : ""}\n\n${statementText}\n\nご不明な点がございましたら、お気軽にご連絡ください。\n\n今後ともよろしくお願いいたします。\n\n星の図書館\nSATOYAMA AI BASE\nr.inafuku@tonari2tomaru.com`,
-      attachments: pdfBuffer ? [{
-        filename: `支払明細書_KB-202603-TEST.pdf`,
-        content: pdfBuffer,
-        contentType: "application/pdf",
-      }] : [],
+      subject: "【星の図書館】テスト: 2026年3月分 お支払い完了（明細書添付版）",
+      text: `テスト太郎 様\n\nいつもお世話になっております。\n星の図書館（SATOYAMA AI BASE）です。\n\n2026年3月分の紹介料のお支払いが完了しました。\n以下に支払明細書を記載いたします。\n明細書ファイルも添付しております。\n\n${statementText}\n\nご不明な点がございましたら、お気軽にご連絡ください。\n\n今後ともよろしくお願いいたします。\n\n星の図書館（SATOYAMA AI BASE）\nsatoyama-ai-base@tonari2tomaru.com`,
+      attachments: [{
+        filename: `支払明細書_KB-202603-TEST.html`,
+        content: htmlContent,
+        contentType: "text/html; charset=utf-8",
+      }],
     });
 
     return NextResponse.json({
       ok: true,
       messageId: info.messageId,
-      pdfAttached: !!pdfBuffer,
-      pdfSize: pdfBuffer ? pdfBuffer.length : 0,
-      pdfError: pdfError || undefined,
+      attached: true,
+      attachmentSize: htmlContent.length,
     });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
