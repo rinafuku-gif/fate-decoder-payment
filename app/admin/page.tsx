@@ -177,6 +177,7 @@ function AdminContent() {
                         <th className="text-right px-4 py-3">有料</th>
                         <th className="text-right px-4 py-3">売上</th>
                         <th className="text-right px-4 py-3">KB率</th>
+                        <th className="text-right px-4 py-3">繰越</th>
                         <th className="text-center px-4 py-3">QR</th>
                       </tr>
                     </thead>
@@ -192,6 +193,9 @@ function AdminContent() {
                           <td className="px-4 py-3 text-right text-gray-800">{loc.paidDiagnoses}</td>
                           <td className="px-4 py-3 text-right text-gray-900 font-medium">¥{(loc.revenue || 0).toLocaleString()}</td>
                           <td className="px-4 py-3 text-right text-gray-700">¥{loc.kickbackRate}/件</td>
+                          <td className="px-4 py-3 text-right text-gray-700">
+                            {(loc.carriedOverAmount || 0) > 0 ? `¥${loc.carriedOverAmount.toLocaleString()}` : "—"}
+                          </td>
                           <td className="px-4 py-3 text-center">
                             <a
                               href={`/api/qr?ref=${loc.refId}`}

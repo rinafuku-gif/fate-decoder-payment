@@ -9,6 +9,7 @@ export const locations = sqliteTable("locations", {
   address: text("address"),
   bankInfo: text("bank_info"),
   kickbackRate: integer("kickback_rate").notNull().default(50),
+  carriedOverAmount: integer("carried_over_amount").notNull().default(0),
   status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),

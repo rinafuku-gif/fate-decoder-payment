@@ -18,6 +18,7 @@ export async function GET() {
     address: locations.address,
     bankInfo: locations.bankInfo,
     kickbackRate: locations.kickbackRate,
+    carriedOverAmount: locations.carriedOverAmount,
     status: locations.status,
     isActive: locations.isActive,
     createdAt: locations.createdAt,
