@@ -120,7 +120,7 @@ ${statementText}
 
 星の図書館
 SATOYAMA AI BASE
-r.inafuku@tonari2tomaru.com`.trim(),
+satoyama-ai-base@tonari2tomaru.com`.trim(),
   };
 
   if (pdfBuffer && statementNumber) {

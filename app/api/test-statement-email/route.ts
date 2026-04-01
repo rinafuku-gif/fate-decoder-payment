@@ -30,10 +30,11 @@ export async function GET(request: NextRequest) {
 
   const statementText = buildStatementText(params);
   let pdfBuffer: Buffer | null = null;
+  let pdfError = "";
   try {
     pdfBuffer = await buildStatementPdf(params);
   } catch (err) {
-    console.error("PDF generation failed:", err);
+    pdfError = err instanceof Error ? err.message + " | " + err.stack?.split("\n")[1] : String(err);
   }
 
   try {
@@ -59,6 +60,7 @@ export async function GET(request: NextRequest) {
       messageId: info.messageId,
       pdfAttached: !!pdfBuffer,
       pdfSize: pdfBuffer ? pdfBuffer.length : 0,
+      pdfError: pdfError || undefined,
     });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);

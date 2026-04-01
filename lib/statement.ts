@@ -90,7 +90,7 @@ export function buildStatementHtml(params: {
     <p style="margin: 0 0 4px;">発行者:</p>
     <p style="margin: 0 0 2px; color: #666;">SATOYAMA AI BASE / 星の図書館</p>
     <p style="margin: 0 0 2px; color: #666;">稲福良祐</p>
-    <p style="margin: 0;">メール: r.inafuku@tonari2tomaru.com</p>
+    <p style="margin: 0;">メール: satoyama-ai-base@tonari2tomaru.com</p>
   </div>
 </div>`;
 }
@@ -133,7 +133,7 @@ ${carryLine}お支払金額:     ¥${p.totalAmount.toLocaleString()}
 発行者:
 SATOYAMA AI BASE / 星の図書館
 稲福良祐
-メール: r.inafuku@tonari2tomaru.com`;
+メール: satoyama-ai-base@tonari2tomaru.com`;
 }
 
 export async function buildStatementPdf(params: {
@@ -154,19 +154,29 @@ export async function buildStatementPdf(params: {
   const p = params;
   const doc = await PDFDocument.create();
 
-  // Load Japanese font
+  // Load Japanese font from filesystem
   let font;
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const fontRes = await fetch(`${appUrl}/fonts/NotoSansJP-Regular.ttf`);
-    if (!fontRes.ok) throw new Error("Font fetch failed");
-    const fontBytes = await fontRes.arrayBuffer();
+    const fs = await import("fs");
+    const path = await import("path");
+    // Try multiple paths for different environments
+    const candidates = [
+      path.join(process.cwd(), "public/fonts/NotoSansJP-Regular.ttf"),
+      path.join(process.cwd(), "lib/fonts/NotoSansJP-Regular.ttf"),
+      "/var/task/public/fonts/NotoSansJP-Regular.ttf",
+      "/var/task/.next/server/public/fonts/NotoSansJP-Regular.ttf",
+    ];
+    let fontBytes: Buffer | null = null;
+    for (const fp of candidates) {
+      try { fontBytes = fs.readFileSync(fp); break; } catch { /* next */ }
+    }
+    if (!fontBytes) throw new Error("Font not found in any path");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fontkit = (await import("fontkit")).default as any;
     doc.registerFontkit(fontkit);
     font = await doc.embedFont(fontBytes);
-  } catch {
-    // Fallback to Helvetica if Japanese font not available
+  } catch (fontErr) {
+    console.error("Japanese font load failed, using Helvetica:", fontErr);
     font = await doc.embedFont(StandardFonts.Helvetica);
   }
 
@@ -245,7 +255,7 @@ export async function buildStatementPdf(params: {
     "発行者:",
     "SATOYAMA AI BASE / 星の図書館",
     "稲福良祐",
-    "メール: r.inafuku@tonari2tomaru.com",
+    "メール: satoyama-ai-base@tonari2tomaru.com",
   ];
   for (const line of footerLines) {
     page.drawText(line, { x: lm, y, font, size: 9, color: gray });
