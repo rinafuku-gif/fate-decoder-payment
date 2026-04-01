@@ -268,16 +268,16 @@ function AdminContent() {
                   <tbody>
                     {(diagnosesData.data || []).map((d: any) => (
                       <tr key={d.id} className="border-t border-gray-100 hover:bg-gray-50">
-                        <td className="px-4 py-2 text-xs text-gray-600">{d.created_at?.slice(0, 16).replace("T", " ")}</td>
-                        <td className="px-4 py-2 text-gray-800">{d.user_name || "—"}</td>
+                        <td className="px-4 py-2 text-xs text-gray-600">{(d.createdAt || d.created_at)?.slice(0, 16).replace("T", " ") || "—"}</td>
+                        <td className="px-4 py-2 text-gray-800">{d.userName || d.user_name || "—"}</td>
                         <td className="px-4 py-2">
                           <span className={`px-2 py-0.5 rounded-full text-xs ${d.mode === "short" ? "bg-pink-50 text-pink-600" : "bg-purple-50 text-purple-600"}`}>
                             {d.mode}
                           </span>
                         </td>
                         <td className="px-4 py-2 text-xs text-gray-700">{d.topic || "—"}</td>
-                        <td className="px-4 py-2 font-mono text-xs text-gray-600">{d.ref_id}</td>
-                        <td className="px-4 py-2 text-right text-gray-800">{d.paid_amount > 0 ? `¥${d.paid_amount}` : "無料"}</td>
+                        <td className="px-4 py-2 font-mono text-xs text-gray-600">{d.refId || d.ref_id}</td>
+                        <td className="px-4 py-2 text-right text-gray-800">{(d.paidAmount || d.paid_amount) > 0 ? `¥${d.paidAmount || d.paid_amount}` : "無料"}</td>
                       </tr>
                     ))}
                   </tbody>
