@@ -181,8 +181,8 @@ export async function buildStatementPdf(params: {
     doc.registerFontkit(fontkit);
     font = await doc.embedFont(fontBytes);
   } catch (fontErr) {
-    console.error("Japanese font load failed, using Helvetica:", fontErr);
-    font = await doc.embedFont(StandardFonts.Helvetica);
+    // Re-throw to bubble up error detail instead of silently falling back
+    throw new Error(`Font load failed: ${fontErr instanceof Error ? fontErr.message : String(fontErr)}`);
   }
 
   const page = doc.addPage([595, 842]); // A4
