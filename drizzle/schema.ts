@@ -6,8 +6,10 @@ export const locations = sqliteTable("locations", {
   name: text("name").notNull(),
   contactName: text("contact_name"),
   contactEmail: text("contact_email"),
+  address: text("address"),
   bankInfo: text("bank_info"),
   kickbackRate: integer("kickback_rate").notNull().default(50),
+  status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });

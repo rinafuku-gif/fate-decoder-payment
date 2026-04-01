@@ -15,8 +15,10 @@ export async function GET() {
     name: locations.name,
     contactName: locations.contactName,
     contactEmail: locations.contactEmail,
+    address: locations.address,
     bankInfo: locations.bankInfo,
     kickbackRate: locations.kickbackRate,
+    status: locations.status,
     isActive: locations.isActive,
     createdAt: locations.createdAt,
   }).from(locations).orderBy(locations.name);

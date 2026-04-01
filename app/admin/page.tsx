@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-type Tab = "overview" | "locations" | "diagnoses";
+type Tab = "overview" | "locations" | "diagnoses" | "payments";
 
 function AdminContent() {
   const router = useRouter();
@@ -19,21 +19,24 @@ function AdminContent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const headers: Record<string, string> = {};
       if (tab === "overview") {
-        const res = await fetch("/api/admin/stats", { headers });
+        const res = await fetch("/api/admin/stats");
         if (res.status === 401) { router.push("/admin/login"); return; }
         setStats(await res.json());
       } else if (tab === "locations") {
-        const res = await fetch("/api/admin/locations", { headers });
+        const res = await fetch("/api/admin/locations");
         if (res.status === 401) { router.push("/admin/login"); return; }
         setLocations(await res.json());
       } else if (tab === "diagnoses") {
-        const res = await fetch("/api/admin/diagnoses?limit=50", { headers });
+        const res = await fetch("/api/admin/diagnoses?limit=50");
         if (res.status === 401) { router.push("/admin/login"); return; }
         setDiagnosesData(await res.json());
+      } else if (tab === "payments") {
+        const res = await fetch("/api/admin/payments");
+        if (res.status === 401) { router.push("/admin/login"); return; }
+        setPayments(await res.json());
       }
-    } catch { /* ignore */ }
+    } catch { /* network error */ }
     setLoading(false);
   }, [tab, router]);
 
@@ -42,6 +45,16 @@ function AdminContent() {
   const handleTabChange = (t: Tab) => {
     setTab(t);
     router.replace(`/admin?tab=${t}`);
+  };
+
+  const handleApprove = async (id: number) => {
+    if (!confirm("この場所を承認しますか？")) return;
+    await fetch(`/api/admin/locations/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "approved" }),
+    });
+    fetchData();
   };
 
   const handleAggregate = async () => {
@@ -54,6 +67,7 @@ function AdminContent() {
   };
 
   const handleMarkPaid = async (id: number) => {
+    if (!confirm("支払済にしますか？")) return;
     await fetch(`/api/admin/payments/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -66,6 +80,7 @@ function AdminContent() {
     { id: "overview", label: "概要" },
     { id: "locations", label: "場所別" },
     { id: "diagnoses", label: "診断ログ" },
+    { id: "payments", label: "支払管理" },
   ];
 
   return (
@@ -76,13 +91,12 @@ function AdminContent() {
           <span className="text-xs text-gray-600">Admin Dashboard</span>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-1 mb-6 bg-white rounded-xl p-1 border border-gray-200">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => handleTabChange(t.id)}
-              className={`flex-1 py-2 text-sm rounded-lg transition-colors ${tab === t.id ? "bg-purple-100 text-purple-700 font-medium" : "text-gray-700 hover:text-gray-700"}`}
+              className={`flex-1 py-2 text-sm rounded-lg transition-colors ${tab === t.id ? "bg-purple-100 text-purple-700 font-medium" : "text-gray-700 hover:text-gray-900"}`}
             >
               {t.label}
             </button>
@@ -101,6 +115,7 @@ function AdminContent() {
                     { label: "総診断数", value: stats.totalDiagnoses, color: "text-gray-900" },
                     { label: "有料診断", value: stats.paidDiagnoses || 0, color: "text-purple-700" },
                     { label: "総売上", value: `¥${(stats.totalRevenue || 0).toLocaleString()}`, color: "text-green-700" },
+                    { label: "未払キックバック", value: `¥${(stats.unpaidKickback || 0).toLocaleString()}`, color: "text-amber-600" },
                   ].map((s, i) => (
                     <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
                       <p className="text-xs text-gray-600">{s.label}</p>
@@ -129,29 +144,68 @@ function AdminContent() {
 
             {/* Locations */}
             {tab === "locations" && (
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-100 text-gray-700 text-xs font-semibold">
-                    <tr>
-                      <th className="text-left px-4 py-3">場所</th>
-                      <th className="text-right px-4 py-3">ref</th>
-                      <th className="text-right px-4 py-3">診断数</th>
-                      <th className="text-right px-4 py-3">有料</th>
-                      <th className="text-right px-4 py-3">売上</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {locations.map((loc: any) => (
-                      <tr key={loc.refId} className="border-t border-gray-100 hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-900">{loc.name}</td>
-                        <td className="px-4 py-3 text-right text-gray-700 font-mono text-xs">{loc.refId}</td>
-                        <td className="px-4 py-3 text-right text-gray-800">{loc.totalDiagnoses}</td>
-                        <td className="px-4 py-3 text-right text-gray-800">{loc.paidDiagnoses}</td>
-                        <td className="px-4 py-3 text-right text-gray-900 font-medium">¥{(loc.revenue || 0).toLocaleString()}</td>
-                      </tr>
+              <div className="space-y-4">
+                {/* Pending applications */}
+                {locations.filter((l: any) => l.status === "pending").length > 0 && (
+                  <div className="bg-amber-50 rounded-xl border border-amber-200 p-4">
+                    <h3 className="text-sm font-semibold text-amber-800 mb-3">承認待ちの申請</h3>
+                    {locations.filter((l: any) => l.status === "pending").map((loc: any) => (
+                      <div key={loc.id} className="flex items-center justify-between py-2 border-b border-amber-100 last:border-0">
+                        <div>
+                          <p className="font-medium text-gray-900">{loc.name}</p>
+                          <p className="text-xs text-gray-600">{loc.contactName} / {loc.contactEmail}</p>
+                        </div>
+                        <button
+                          onClick={() => handleApprove(loc.id)}
+                          className="px-3 py-1.5 text-xs rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
+                        >
+                          承認
+                        </button>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                )}
+
+                {/* Approved locations */}
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-100 text-gray-700 text-xs font-semibold">
+                      <tr>
+                        <th className="text-left px-4 py-3">場所</th>
+                        <th className="text-left px-4 py-3">担当者</th>
+                        <th className="text-right px-4 py-3">診断数</th>
+                        <th className="text-right px-4 py-3">有料</th>
+                        <th className="text-right px-4 py-3">売上</th>
+                        <th className="text-right px-4 py-3">KB率</th>
+                        <th className="text-center px-4 py-3">QR</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {locations.filter((l: any) => l.status !== "pending").map((loc: any) => (
+                        <tr key={loc.refId} className="border-t border-gray-100 hover:bg-gray-50">
+                          <td className="px-4 py-3">
+                            <p className="font-medium text-gray-900">{loc.name}</p>
+                            <p className="text-xs text-gray-500 font-mono">{loc.refId}</p>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-700">{loc.contactName || "—"}</td>
+                          <td className="px-4 py-3 text-right text-gray-800">{loc.totalDiagnoses}</td>
+                          <td className="px-4 py-3 text-right text-gray-800">{loc.paidDiagnoses}</td>
+                          <td className="px-4 py-3 text-right text-gray-900 font-medium">¥{(loc.revenue || 0).toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right text-gray-700">¥{loc.kickbackRate}/件</td>
+                          <td className="px-4 py-3 text-center">
+                            <a
+                              href={`/api/qr?ref=${loc.refId}`}
+                              download={`qr-${loc.refId}.png`}
+                              className="text-xs text-purple-600 hover:underline"
+                            >
+                              DL
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
@@ -176,7 +230,7 @@ function AdminContent() {
                     {(diagnosesData.data || []).map((d: any) => (
                       <tr key={d.id} className="border-t border-gray-100 hover:bg-gray-50">
                         <td className="px-4 py-2 text-xs text-gray-600">{d.created_at?.slice(0, 16).replace("T", " ")}</td>
-                        <td className="px-4 py-2">{d.user_name || "—"}</td>
+                        <td className="px-4 py-2 text-gray-800">{d.user_name || "—"}</td>
                         <td className="px-4 py-2">
                           <span className={`px-2 py-0.5 rounded-full text-xs ${d.mode === "short" ? "bg-pink-50 text-pink-600" : "bg-purple-50 text-purple-600"}`}>
                             {d.mode}
@@ -184,7 +238,7 @@ function AdminContent() {
                         </td>
                         <td className="px-4 py-2 text-xs text-gray-700">{d.topic || "—"}</td>
                         <td className="px-4 py-2 font-mono text-xs text-gray-600">{d.ref_id}</td>
-                        <td className="px-4 py-2 text-right">{d.paid_amount > 0 ? `¥${d.paid_amount}` : "無料"}</td>
+                        <td className="px-4 py-2 text-right text-gray-800">{d.paid_amount > 0 ? `¥${d.paid_amount}` : "無料"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -192,8 +246,8 @@ function AdminContent() {
               </div>
             )}
 
-            {/* Payments (hidden - kickback feature disabled) */}
-            {false && (
+            {/* Payments */}
+            {tab === "payments" && (
               <div className="space-y-4">
                 <div className="flex justify-end">
                   <button
@@ -222,17 +276,17 @@ function AdminContent() {
                       ) : (
                         payments.map((p: any) => (
                           <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
-                            <td className="px-4 py-2 text-xs">{p.periodStart} 〜 {p.periodEnd}</td>
-                            <td className="px-4 py-2">{p.locationRef}</td>
-                            <td className="px-4 py-2 text-right">{p.diagnosisCount}件</td>
-                            <td className="px-4 py-2 text-right font-medium">¥{(p.amount || 0).toLocaleString()}</td>
+                            <td className="px-4 py-2 text-xs text-gray-700">{p.periodStart} 〜 {p.periodEnd}</td>
+                            <td className="px-4 py-2 text-gray-800">{p.locationRef}</td>
+                            <td className="px-4 py-2 text-right text-gray-800">{p.diagnosisCount}件</td>
+                            <td className="px-4 py-2 text-right font-medium text-gray-900">¥{(p.amount || 0).toLocaleString()}</td>
                             <td className="px-4 py-2 text-center">
-                              <span className={`px-2 py-0.5 rounded-full text-xs ${p.status === "paid" ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
+                              <span className={`px-2 py-0.5 rounded-full text-xs ${p.status === "paid" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
                                 {p.status === "paid" ? "支払済" : "未払い"}
                               </span>
                             </td>
                             <td className="px-4 py-2 text-center space-x-2">
-                              <a href={`/api/admin/statements/${p.id}`} target="_blank" rel="noreferrer" className="text-xs text-purple-500 hover:underline">明細書</a>
+                              <a href={`/api/admin/statements/${p.id}`} target="_blank" rel="noreferrer" className="text-xs text-purple-600 hover:underline">明細書</a>
                               {p.status === "pending" && (
                                 <button onClick={() => handleMarkPaid(p.id)} className="text-xs text-green-600 hover:underline">支払済にする</button>
                               )}
