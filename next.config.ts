@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [],
   },
+  outputFileTracingIncludes: {
+    "/api/admin/payments/\\[id\\]": ["./lib/fonts/**/*"],
+    "/api/test-statement-email": ["./lib/fonts/**/*"],
+    "/api/cron/aggregate": ["./lib/fonts/**/*"],
+  },
   headers: async () => [
     {
       source: "/:path*",
