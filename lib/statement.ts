@@ -160,17 +160,22 @@ export async function buildStatementPdf(params: {
     const fs = await import("fs");
     const path = await import("path");
     // Try multiple paths for different environments
+    const cwd = process.cwd();
     const candidates = [
-      path.join(process.cwd(), "public/fonts/NotoSansJP-Regular.ttf"),
-      path.join(process.cwd(), "lib/fonts/NotoSansJP-Regular.ttf"),
+      path.join(cwd, "lib/fonts/NotoSansJP-Regular.ttf"),
+      path.join(cwd, "public/fonts/NotoSansJP-Regular.ttf"),
+      path.join(cwd, ".next/server/lib/fonts/NotoSansJP-Regular.ttf"),
+      "/var/task/lib/fonts/NotoSansJP-Regular.ttf",
       "/var/task/public/fonts/NotoSansJP-Regular.ttf",
-      "/var/task/.next/server/public/fonts/NotoSansJP-Regular.ttf",
+      "/var/task/.next/server/lib/fonts/NotoSansJP-Regular.ttf",
+      path.join(__dirname, "../fonts/NotoSansJP-Regular.ttf"),
+      path.join(__dirname, "../../lib/fonts/NotoSansJP-Regular.ttf"),
     ];
     let fontBytes: Buffer | null = null;
     for (const fp of candidates) {
       try { fontBytes = fs.readFileSync(fp); break; } catch { /* next */ }
     }
-    if (!fontBytes) throw new Error("Font not found in any path");
+    if (!fontBytes) throw new Error(`Font not found. cwd=${cwd}, tried: ${candidates.join(", ")}`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fontkit = (await import("fontkit")).default as any;
     doc.registerFontkit(fontkit);
