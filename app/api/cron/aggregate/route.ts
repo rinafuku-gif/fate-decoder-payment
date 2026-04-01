@@ -3,10 +3,7 @@ import { db } from "@/lib/db";
 import { diagnoses, locations, kickbackPayments } from "@/drizzle/schema";
 import { sql, eq, and, gte, lt } from "drizzle-orm";
 import nodemailer from "nodemailer";
-
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
+import { buildStatementHtml, generateStatementNumber, formatDateJP } from "@/lib/statement";
 
 const MINIMUM_PAYOUT = 10000;
 
@@ -57,26 +54,22 @@ export async function GET(request: NextRequest) {
       continue;
     }
 
-    const carryStr = (loc.carriedOverAmount || 0) > 0
-      ? `<tr><td style="color: #666;">前月繰越</td><td style="text-align: right;">¥${(loc.carriedOverAmount || 0).toLocaleString()}</td></tr>`
-      : "";
+    const statementNumber = generateStatementNumber(startStr, created);
+    const issuedDate = formatDateJP(new Date().toISOString().split("T")[0]);
 
-    const statementHtml = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-        <h1 style="font-size: 18px; border-bottom: 2px solid #c084fc; padding-bottom: 8px;">星の図書館 キックバック明細書</h1>
-        <table style="width: 100%; margin: 20px 0; font-size: 14px;">
-          <tr><td style="color: #666;">設置場所</td><td style="text-align: right; font-weight: bold;">${escapeHtml(loc.name)}</td></tr>
-          <tr><td style="color: #666;">対象期間</td><td style="text-align: right;">${startStr} 〜 ${endStr}</td></tr>
-          <tr><td style="color: #666;">有料診断件数</td><td style="text-align: right;">${count}件</td></tr>
-          <tr><td style="color: #666;">単価</td><td style="text-align: right;">¥${loc.kickbackRate} / 件</td></tr>
-          <tr><td style="color: #666;">当月分</td><td style="text-align: right;">¥${monthlyAmount.toLocaleString()}</td></tr>
-          ${carryStr}
-          <tr style="border-top: 1px solid #ddd;"><td style="color: #666; padding-top: 8px;">お支払金額</td><td style="text-align: right; padding-top: 8px; font-size: 20px; font-weight: bold; color: #7c3aed;">¥${totalWithCarry.toLocaleString()}</td></tr>
-        </table>
-        ${loc.contactName ? `<p style="font-size: 12px; color: #999;">宛先: ${escapeHtml(loc.contactName)} 様</p>` : ""}
-        <p style="font-size: 11px; color: #ccc; margin-top: 40px; text-align: center;">発行: SATOYAMA AI BASE / 星の図書館</p>
-      </div>
-    `;
+    const statementHtml = buildStatementHtml({
+      statementNumber,
+      issuedDate,
+      contactName: loc.contactName || "",
+      locationName: loc.name,
+      periodStart: startStr,
+      periodEnd: endStr,
+      count,
+      unitRate: loc.kickbackRate,
+      monthlyAmount,
+      carriedOver: loc.carriedOverAmount || 0,
+      totalAmount: totalWithCarry,
+    });
 
     await db.delete(kickbackPayments).where(
       and(eq(kickbackPayments.locationRef, loc.refId), eq(kickbackPayments.periodStart, startStr))
