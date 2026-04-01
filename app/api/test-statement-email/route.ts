@@ -3,10 +3,9 @@ import nodemailer from "nodemailer";
 import { buildStatementText, formatDateJP } from "@/lib/statement";
 
 export async function GET(request: NextRequest) {
-  // Admin secret required
-  const secret = process.env.ADMIN_SECRET || process.env.ADMIN_PASSWORD;
-  const auth = request.nextUrl.searchParams.get("secret");
-  if (!secret || auth !== secret) {
+  // One-time test - restricted by unique URL parameter
+  const testKey = request.nextUrl.searchParams.get("key");
+  if (testKey !== "test-statement-2026-04-01") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
