@@ -8,6 +8,23 @@ const nextConfig: NextConfig = {
     {
       source: "/:path*",
       headers: [
+        {
+          key: "Content-Security-Policy",
+          value: [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+            "connect-src 'self' https://api.stripe.com https://generativelanguage.googleapis.com",
+            "frame-src https://js.stripe.com",
+            "font-src 'self' https://fonts.gstatic.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "img-src 'self' data: https: blob:",
+            "media-src 'self'",
+            "object-src 'none'",
+            "base-uri 'self'",
+            "form-action 'self'",
+          ].join("; "),
+        },
+        { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
         { key: "X-Frame-Options", value: "SAMEORIGIN" },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

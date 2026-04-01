@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripeInstance } from "@/lib/stripe";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  const { ok } = rateLimit(`checkout:${ip}`, 20, 15 * 60 * 1000);
+  if (!ok) {
+    return NextResponse.json({ error: "リクエストが多すぎます。しばらくお待ちください" }, { status: 429 });
+  }
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   try {
