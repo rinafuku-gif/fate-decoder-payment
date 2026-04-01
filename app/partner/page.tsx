@@ -330,7 +330,7 @@ export default function PartnerPage() {
                 <p>本規約は日本法に準拠します。紛争については甲府地方裁判所を第一審の専属的合意管轄裁判所とします。</p>
 
                 <p style={{ color: "var(--text-secondary)", fontWeight: 500 }}>第14条（連絡先）</p>
-                <p>運営者: 稲福良祐 / メール: r.inafuku@tonari2tomaru.com / サービス: 星の図書館（https://hoshinotoshokan.vercel.app/）</p>
+                <p>運営者: 稲福良祐 / メール: satoyama-ai-base@tonari2tomaru.com / サービス: 星の図書館（https://hoshinotoshokan.vercel.app/）</p>
 
                 <p style={{ color: "var(--text-dim)", fontSize: "10px" }}>制定日: 2026年4月1日</p>
               </div>
