@@ -177,7 +177,8 @@ export async function buildStatementPdf(params: {
     }
     if (!fontBytes) throw new Error(`Font not found. cwd=${cwd}, tried: ${candidates.join(", ")}`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fontkit = (await import("fontkit")).default as any;
+    const fontkitModule = await import("fontkit") as any;
+    const fontkit = fontkitModule.default || fontkitModule;
     doc.registerFontkit(fontkit);
     font = await doc.embedFont(fontBytes);
   } catch (fontErr) {
