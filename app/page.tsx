@@ -397,7 +397,20 @@ export default function HomePage() {
                     transition={{ delay: 0.45 }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => { playTap(); router.push(TEST_MODE ? "/full" : "/full"); }}
+                    onClick={async () => {
+                      playTap();
+                      if (TEST_MODE) { router.push("/full"); return; }
+                      try {
+                        const res = await fetch("/api/checkout", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ mode: "full", ref: ref || "direct", utmSource: new URLSearchParams(window.location.search).get("utm_source") }),
+                        });
+                        const data = await res.json();
+                        if (data.url) window.location.href = data.url;
+                        else alert(data.error || "決済画面の表示に失敗しました");
+                      } catch { alert("通信エラーが発生しました"); }
+                    }}
                     className="w-full p-5 rounded-lg text-left transition-all"
                     style={{
                       background: "rgba(28,23,16,0.7)",
@@ -421,7 +434,20 @@ export default function HomePage() {
                     transition={{ delay: 0.6 }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => { playTap(); router.push(TEST_MODE ? "/compatibility" : "/compatibility"); }}
+                    onClick={async () => {
+                      playTap();
+                      if (TEST_MODE) { router.push("/compatibility"); return; }
+                      try {
+                        const res = await fetch("/api/checkout", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ mode: "compatibility", ref: ref || "direct", utmSource: new URLSearchParams(window.location.search).get("utm_source") }),
+                        });
+                        const data = await res.json();
+                        if (data.url) window.location.href = data.url;
+                        else alert(data.error || "決済画面の表示に失敗しました");
+                      } catch { alert("通信エラーが発生しました"); }
+                    }}
                     className="w-full p-5 rounded-lg text-left transition-all"
                     style={{
                       background: "rgba(28,23,16,0.7)",
