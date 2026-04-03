@@ -124,7 +124,8 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
         const last = clean.lastIndexOf("}");
         if (last !== -1) clean = clean.substring(0, last + 1);
         parsed = JSON.parse(clean);
-      } catch {
+      } catch (err) {
+        console.error("[handleSubmit] JSONパース失敗:", err);
         parsed = {
           oneWord: "…なかなか面白い星の配置",
           section1: `…あなたの紋章、${data.maya.glyph}だった。ライフパスナンバーは${data.numerology.lp}。穏やかに見えて、中身はかなり芯が強いタイプだと思う。`,
@@ -187,7 +188,35 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
       const topicFocus = TOPIC_PROMPT_FOCUS[topicOverride];
       const topicLabel = TOPICS.find(t => t.id === topicOverride)?.label || "総合運";
 
-      const prompt = `${config.promptStyle}\n\n以下の人物の6占術データから、あなた（${config.name}）の口調で【${topicLabel}】の診断結果を書いてください。\n\n【テーマ】${topicFocus}\n\n【対象者】${form.name} (${form.year}年${form.month}月${form.day}日生まれ)\n【占術データ】マヤ暦:KIN${data.maya.kin}/紋章:${data.maya.glyph}/音:${data.maya.tone}/WS:${data.maya.ws} 算命学:[${data.bazi.weapon}] 四柱推命:年柱[${data.sanmeigaku.year}]/月柱[${data.sanmeigaku.month}]/日柱[${data.sanmeigaku.day}]/日干[${data.bazi.stem}] 数秘:LP${data.numerology.lp} 西洋:${data.western.sign} 宿曜:${data.sukuyo}\n\n【出力ルール】\n1. section1: 200-300文字。占術データを2つ以上引用\n2. section2: 200-300文字\n3. section3: 200-300文字\n4. oneWord: 8-15文字\n5. action: 20-40文字\n6. luckyItem: 具体的に\n**必ず純粋なJSON**\n{"oneWord":"","section1":"","section2":"","section3":"","action":"","luckyItem":""}`;
+      const prompt = `
+${config.promptStyle}
+
+以下の人物の6占術データから、あなた（${config.name}）の口調・性格で【${topicLabel}】の診断結果を書いてください。
+
+【テーマ】${topicFocus}
+
+【対象者】
+${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
+
+【占術データ】
+・マヤ暦: KIN${data.maya.kin} / 太陽の紋章:${data.maya.glyph} / 銀河の音:${data.maya.tone} / ウェイブスペル:${data.maya.ws}
+・算命学: 中心星[${data.bazi.weapon}]
+・四柱推命: 年柱[${data.sanmeigaku.year}] / 月柱[${data.sanmeigaku.month}] / 日柱[${data.sanmeigaku.day}] / 日干[${data.bazi.stem}]
+・数秘術: ライフパスナンバー[${data.numerology.lp}]
+・西洋占星術: ${data.western.sign}
+・宿曜: ${data.sukuyo}
+
+【執筆ルール】
+1. section1: 200〜300文字。占術データを2つ以上引用。${config.name}の口調で
+2. section2: 200〜300文字。${config.name}の口調で
+3. section3: 200〜300文字。${config.name}の口調で
+4. oneWord: この人を一言で表す言葉。8〜15文字。${config.name}らしい表現で
+5. action: 今日からできる具体的なアクション。${config.name}が軽く勧める感じで
+6. luckyItem: ラッキーアイテム
+7. **必ず純粋なJSON形式で出力**
+
+{"oneWord":"","section1":"","section2":"","section3":"","action":"","luckyItem":""}
+`;
 
       let parsed: any = {};
       try {
@@ -198,13 +227,14 @@ ${form.name} (${form.year}年${form.month}月${form.day}日生まれ)
         const last = clean.lastIndexOf("}");
         if (last !== -1) clean = clean.substring(0, last + 1);
         parsed = JSON.parse(clean);
-      } catch {
+      } catch (err) {
+        console.error("[runDiagnosisWithTopic] JSONパース失敗:", err);
         parsed = {
           oneWord: "…なかなか面白い星の配置",
-          section1: `…${data.maya.glyph}の紋章。芯が強い。`,
-          section2: `${data.western.sign}のあなたは深い絆を求める。`,
-          section3: `「${data.bazi.weapon}」を持ってる。`,
-          action: "…朝5分、深呼吸してみて",
+          section1: `…あなたの紋章、${data.maya.glyph}だった。ライフパスナンバーは${data.numerology.lp}。穏やかに見えて、中身はかなり芯が強いタイプだと思う。`,
+          section2: `${data.western.sign}のあなたは、深い絆を求めるタイプ。…広く浅くより、本音で話せる少人数のほうが居心地いいんじゃない？`,
+          section3: `算命学の「${data.bazi.weapon}」を持ってるから、本質を見抜く力がある。…まあ、活かせる場所を見つけられるかどうかだけど。`,
+          action: "…とりあえず、朝5分だけ窓を開けて深呼吸してみて",
           luckyItem: "温かい飲み物",
         };
       }
