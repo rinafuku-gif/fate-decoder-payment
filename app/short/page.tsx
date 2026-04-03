@@ -43,12 +43,14 @@ const TOPIC_PROMPT_FOCUS: Record<TopicId, string> = {
 function LoadingText({ stages }: { stages: { text: string; delay: number }[] }) {
   const [index, setIndex] = useState(0);
   useEffect(() => {
+    setIndex(0);
     const timers = stages.map((stage, i) => {
       if (i === 0) return null;
       return setTimeout(() => setIndex(i), stage.delay);
     });
     return () => timers.forEach((t) => t && clearTimeout(t));
-  }, [stages]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return <p className="text-sm text-white/80">{stages[index]?.text}</p>;
 }
 

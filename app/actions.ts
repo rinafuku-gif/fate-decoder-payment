@@ -17,7 +17,8 @@ export async function generateFortune(prompt: string) {
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: { responseMimeType: 'application/json' }
     }),
-    signal: AbortSignal.timeout(55000)
+    signal: AbortSignal.timeout(55000),
+    cache: 'no-store',
   })
 
   if (!response.ok) {
