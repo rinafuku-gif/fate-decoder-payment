@@ -358,7 +358,7 @@ export default function HomePage() {
                   transition={{ delay: 2.5, duration: 0.5 }}
                   whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(201,169,110,0.25)" }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => { go("menu"); }}
+                  onClick={() => { go("char_select"); }}
                   className="mx-auto px-10 py-3.5 rounded text-sm font-medium border transition-all"
                   style={{
                     borderColor: "rgba(201,169,110,0.4)",
@@ -833,45 +833,87 @@ export default function HomePage() {
                   </div>
                 </FadeIn>
 
-                {/* Upsell */}
+                {/* Next actions — 3-way CTA */}
                 <FadeIn delay={3.8}>
                   <ChatBubble
                     characterImage={charConfig.avatar}
                     characterName={charConfig.name}
                     breatheClass={charConfig.breatheClass}
-                    text="…もっと深く知りたい？6000文字のフルレポート、書いてこようか？ ¥200だけど。"
+                    text="…次はどうする？"
                     speed={28}
                   />
-                  <div className="flex gap-2 ml-13 mt-3">
+                  <div className="ml-13 mt-3 space-y-3">
+                    {/* Primary CTA: フル鑑定 */}
                     <motion.button
-                      whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(201,169,110,0.2)" }}
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(201,169,110,0.25)" }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => {
-                        fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "full", ref: ref || "direct" }) })
+                        fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "full", ref: ref || "direct", utmSource: sessionStorage.getItem("fd_utm_source"), utmMedium: sessionStorage.getItem("fd_utm_medium"), utmCampaign: sessionStorage.getItem("fd_utm_campaign") }) })
                           .then(r => r.json()).then(d => { if (d.url) window.location.href = d.url; })
                           .catch(() => alert("決済ページへの接続に失敗しました。もう一度お試しください。"));
                       }}
-                      className="flex-1 py-3 rounded-full text-sm font-medium text-white"
-                      style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.5), rgba(201,169,110,0.25))", border: "1px solid rgba(201,169,110,0.3)" }}
+                      className="w-full py-4 rounded-2xl text-sm font-medium text-white transition-all"
+                      style={{ background: "linear-gradient(135deg, rgba(201,169,110,0.55), rgba(201,169,110,0.28))", border: "1px solid rgba(201,169,110,0.4)" }}
                     >
-                      ¥200で詳しく
+                      <span className="block text-base font-bold mb-0.5" style={{ fontFamily: "var(--font-serif), serif", color: "var(--brass-light)" }}>もっと深く知る</span>
+                      <span className="text-xs text-white/50">6000文字のフル鑑定 · ¥200</span>
                     </motion.button>
+
+                    {/* Secondary CTA: 相性鑑定 */}
+                    <motion.button
+                      whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(201,169,110,0.15)" }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={async () => {
+                        playTap();
+                        if (TEST_MODE) { router.push("/compatibility"); return; }
+                        try {
+                          const res = await fetch("/api/checkout", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ mode: "compatibility", ref: ref || "direct", utmSource: sessionStorage.getItem("fd_utm_source"), utmMedium: sessionStorage.getItem("fd_utm_medium"), utmCampaign: sessionStorage.getItem("fd_utm_campaign") }),
+                          });
+                          const data = await res.json();
+                          if (data.url) window.location.href = data.url;
+                          else alert(data.error || "決済画面の表示に失敗しました");
+                        } catch { alert("通信エラーが発生しました"); }
+                      }}
+                      className="w-full py-4 rounded-2xl text-sm text-left px-5 transition-all"
+                      style={{ background: "rgba(28,23,16,0.7)", border: "1px solid rgba(201,169,110,0.2)" }}
+                    >
+                      <span className="block text-sm font-bold mb-0.5 text-white/80" style={{ fontFamily: "var(--font-serif), serif" }}>誰かとの相性を見る</span>
+                      <span className="text-xs text-white/35">相性鑑定 · ¥200</span>
+                    </motion.button>
+
+                    {/* Tertiary CTA: 別の運勢（無料） */}
+                    <motion.button
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => { playTap(); setResult(null); go("ask_topic"); }}
+                      className="w-full py-3 rounded-2xl text-sm text-white/50 transition-all"
+                      style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.08)" }}
+                    >
+                      別の運勢を見る（無料）
+                    </motion.button>
+                  </div>
+
+                  {/* Share + restart */}
+                  <div className="ml-13 mt-4 flex items-center gap-3">
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={handleShare}
-                      className="flex-1 py-3 rounded-full text-sm text-white/60 border"
-                      style={{ borderColor: "rgba(255,255,255,0.15)" }}
+                      className="flex-1 py-2.5 rounded-full text-xs text-white/40 border transition-all"
+                      style={{ borderColor: "rgba(255,255,255,0.1)" }}
                     >
-                      テキストで共有
+                      結果をシェアする
                     </motion.button>
+                    <button
+                      onClick={() => { setStep("intro"); setName(""); setResult(null); setCharacter(null); setTopic("general"); }}
+                      className="flex-1 py-2.5 text-[11px] text-white/20 hover:text-white/40 transition-colors"
+                    >
+                      最初からやり直す
+                    </button>
                   </div>
-                  <button
-                    onClick={() => { setStep("intro"); setName(""); setResult(null); setCharacter(null); setTopic("general"); }}
-                    className="w-full mt-4 py-2 text-[11px] text-white/20 hover:text-white/40 transition-colors"
-                  >
-                    最初からやり直す
-                  </button>
                 </FadeIn>
               </motion.div>
             )}
