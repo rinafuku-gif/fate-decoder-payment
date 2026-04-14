@@ -13,6 +13,10 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  const numericId = parseInt(id, 10);
+  if (isNaN(numericId)) {
+    return NextResponse.json({ error: "無効なIDです" }, { status: 400 });
+  }
   const body = await request.json();
 
   const updates: Record<string, unknown> = {};
@@ -25,7 +29,7 @@ export async function PATCH(
     updates.isActive = true;
   }
 
-  await db.update(locations).set(updates).where(eq(locations.id, parseInt(id)));
+  await db.update(locations).set(updates).where(eq(locations.id, numericId));
 
   return NextResponse.json({ ok: true });
 }

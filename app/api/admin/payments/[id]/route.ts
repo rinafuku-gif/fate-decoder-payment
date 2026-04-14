@@ -15,17 +15,21 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  const numericId = parseInt(id, 10);
+  if (isNaN(numericId)) {
+    return NextResponse.json({ error: "無効なIDです" }, { status: 400 });
+  }
   const body = await request.json();
 
   if (body.status === "paid") {
     await db.update(kickbackPayments)
       .set({ status: "paid", paidAt: new Date().toISOString() })
-      .where(eq(kickbackPayments.id, parseInt(id)));
+      .where(eq(kickbackPayments.id, numericId));
 
     // Send payment notification email with statement to partner
     try {
       const [payment] = await db.select().from(kickbackPayments)
-        .where(eq(kickbackPayments.id, parseInt(id)));
+        .where(eq(kickbackPayments.id, numericId));
       if (payment) {
         const [loc] = await db.select().from(locations)
           .where(eq(locations.refId, payment.locationRef));

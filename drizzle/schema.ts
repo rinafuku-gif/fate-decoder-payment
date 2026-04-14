@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 
 export const locations = sqliteTable("locations", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -22,7 +22,10 @@ export const locations = sqliteTable("locations", {
   status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  statusIdx: index("locations_status_idx").on(table.status),
+  isActiveIdx: index("locations_is_active_idx").on(table.isActive),
+}));
 
 export const diagnoses = sqliteTable("diagnoses", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -38,7 +41,10 @@ export const diagnoses = sqliteTable("diagnoses", {
   utmCampaign: text("utm_campaign"),
   deviceType: text("device_type"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  refIdIdx: index("diagnoses_ref_id_idx").on(table.refId),
+  createdAtIdx: index("diagnoses_created_at_idx").on(table.createdAt),
+}));
 
 export const paymentTokens = sqliteTable("payment_tokens", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -58,7 +64,11 @@ export const referralFees = sqliteTable("referral_fees", {
   status: text("status").notNull().default("unpaid"), // 'unpaid' | 'paid'
   paidAt: text("paid_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  placeIdIdx: index("referral_fees_place_id_idx").on(table.placeId),
+  statusIdx: index("referral_fees_status_idx").on(table.status),
+  placeIdStatusIdx: index("referral_fees_place_id_status_idx").on(table.placeId, table.status),
+}));
 
 export const kickbackPayments = sqliteTable("kickback_payments", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -72,4 +82,7 @@ export const kickbackPayments = sqliteTable("kickback_payments", {
   paidAt: text("paid_at"),
   statementHtml: text("statement_html"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => ({
+  locationRefIdx: index("kickback_payments_location_ref_idx").on(table.locationRef),
+  statusIdx: index("kickback_payments_status_idx").on(table.status),
+}));

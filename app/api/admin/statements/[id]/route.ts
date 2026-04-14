@@ -13,8 +13,12 @@ export async function GET(
   }
 
   const { id } = await params;
+  const numericId = parseInt(id, 10);
+  if (isNaN(numericId)) {
+    return new NextResponse("Invalid ID", { status: 400 });
+  }
   const [payment] = await db.select().from(kickbackPayments)
-    .where(eq(kickbackPayments.id, parseInt(id)));
+    .where(eq(kickbackPayments.id, numericId));
 
   if (!payment || !payment.statementHtml) {
     return new NextResponse("Not found", { status: 404 });

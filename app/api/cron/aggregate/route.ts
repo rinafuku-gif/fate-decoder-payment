@@ -28,19 +28,23 @@ export async function GET(request: NextRequest) {
   let created = 0;
   let carriedOver = 0;
 
-  for (const loc of locs) {
-    const [result] = await db.select({
-      count: sql<number>`count(*)`,
-    }).from(diagnoses).where(
-      and(
-        eq(diagnoses.refId, loc.refId),
-        sql`${diagnoses.paidAmount} > 0`,
-        gte(diagnoses.createdAt, startStr),
-        lt(diagnoses.createdAt, nextMonthStr),
-      )
-    );
+  // 一括取得してN+1を解消
+  const allStats = await db.select({
+    refId: diagnoses.refId,
+    count: sql<number>`count(*)`,
+  }).from(diagnoses).where(
+    and(
+      sql`${diagnoses.paidAmount} > 0`,
+      gte(diagnoses.createdAt, startStr),
+      lt(diagnoses.createdAt, nextMonthStr),
+    )
+  ).groupBy(diagnoses.refId);
 
-    const count = result.count || 0;
+  const statsMap = new Map(allStats.map(s => [s.refId, s]));
+
+  for (const loc of locs) {
+    const statsEntry = statsMap.get(loc.refId);
+    const count = statsEntry?.count || 0;
     const monthlyAmount = count * loc.kickbackRate;
     const totalWithCarry = monthlyAmount + (loc.carriedOverAmount || 0);
 

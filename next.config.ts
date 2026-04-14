@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
+            "frame-ancestors 'self'",
           ].join("; "),
         },
         { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },

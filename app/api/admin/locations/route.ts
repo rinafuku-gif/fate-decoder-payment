@@ -62,6 +62,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "refId and name are required" }, { status: 400 });
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (contactEmail && !emailRegex.test(contactEmail)) {
+    return NextResponse.json({ error: "メールアドレスの形式が正しくありません" }, { status: 400 });
+  }
+
   await db.insert(locations).values({
     refId,
     name,

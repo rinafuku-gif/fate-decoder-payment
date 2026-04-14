@@ -44,49 +44,42 @@ export async function POST(request: NextRequest) {
 
       console.log("[Webhook] Payment completed:", {
         sessionId: session.id,
-        email: session.customer_details?.email,
         amount: session.amount_total,
-        mode,
-        ref,
       });
 
       // DB記録（重複防止: 同一stripeSessionIdがあればスキップ）
       try {
         const existing = await db.select({ id: diagnoses.id }).from(diagnoses).where(eq(diagnoses.stripeSessionId, session.id)).limit(1);
         if (existing.length === 0) {
-          await db.insert(diagnoses).values({
-            refId: ref,
-            mode,
-            paidAmount: Math.round((session.amount_total || 0) / 1),
-            stripeSessionId: session.id,
-            utmSource: utmSource || null,
-            utmMedium: utmMedium || null,
-            utmCampaign: utmCampaign || null,
-            createdAt: new Date().toISOString(),
+          await db.transaction(async (tx) => {
+            await tx.insert(diagnoses).values({
+              refId: ref,
+              mode,
+              paidAmount: Math.round((session.amount_total || 0) / 1),
+              stripeSessionId: session.id,
+              utmSource: utmSource || null,
+              utmMedium: utmMedium || null,
+              utmCampaign: utmCampaign || null,
+              createdAt: new Date().toISOString(),
+            });
+            if (utmSource) {
+              await tx.insert(referralFees).values({
+                placeId: utmSource,
+                stripeSessionId: session.id,
+                mode,
+                amount: Math.round((session.amount_total || 0) / 1),
+                fee: REFERRAL_FEE,
+                status: "unpaid",
+                createdAt: new Date().toISOString(),
+              });
+              console.log(`[Webhook] Referral fee recorded: ${utmSource} → ¥${REFERRAL_FEE}`);
+            }
           });
         } else {
           console.log("[Webhook] Duplicate session skipped:", session.id);
         }
       } catch (dbErr) {
         console.error("[Webhook] DB insert error:", dbErr);
-      }
-
-      // QR設置場所へのフィー記録（utm_sourceがある場合のみ）
-      if (utmSource) {
-        try {
-          await db.insert(referralFees).values({
-            placeId: utmSource,
-            stripeSessionId: session.id,
-            mode,
-            amount: Math.round((session.amount_total || 0) / 1),
-            fee: REFERRAL_FEE,
-            status: "unpaid",
-            createdAt: new Date().toISOString(),
-          });
-          console.log(`[Webhook] Referral fee recorded: ${utmSource} → ¥${REFERRAL_FEE}`);
-        } catch (feeErr) {
-          console.error("[Webhook] Referral fee insert error:", feeErr);
-        }
       }
       break;
     }

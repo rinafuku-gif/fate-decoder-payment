@@ -66,12 +66,7 @@ export async function GET(request: NextRequest) {
 
 // 支払済みに更新
 export async function PATCH(request: NextRequest) {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret) {
-    return NextResponse.json({ error: "ADMIN_SECRET not configured" }, { status: 500 });
-  }
-  const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${secret}`) {
+  if (!verifyBearer(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
